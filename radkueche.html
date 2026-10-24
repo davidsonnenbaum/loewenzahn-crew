@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Die Radküche – das Spiel der Löwenzahn-Crew</title>
+<meta name="description" content="Koch aus geretteten, saisonalen Zutaten etwas Gutes, versorg die Nachbarschaft und lass dein Grätzl aufblühen. Ein Spiel der Löwenzahn-Crew.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&amp;family=Nunito:wght@400;600;700&amp;family=Caveat:wght@600&amp;display=swap">
+<link rel="stylesheet" href="radkueche.css">
+<script src="radkueche.js" defer></script>
+</head>
+<body>
+<div class="page">
+
+<header class="top">
+<a href="index.html" class="brand"><svg width="52" height="52" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="20" fill="#FFFFFF"></circle><g stroke="#9A8A78" stroke-width="1.2" stroke-linecap="round"><line x1="39.7" y1="34.1" x2="48.9" y2="36.5"></line><line x1="37.7" y1="37.7" x2="44.4" y2="44.4"></line><line x1="34.1" y1="39.7" x2="36.5" y2="48.9"></line><line x1="29.9" y1="39.7" x2="27.5" y2="48.9"></line><line x1="26.3" y1="37.7" x2="19.6" y2="44.4"></line><line x1="24.3" y1="34.1" x2="15.1" y2="36.5"></line><line x1="24.3" y1="29.9" x2="15.1" y2="27.5"></line><line x1="26.3" y1="26.3" x2="19.6" y2="19.6"></line><line x1="29.9" y1="24.3" x2="27.5" y2="15.1"></line><line x1="34.1" y1="24.3" x2="36.5" y2="15.1"></line><line x1="37.7" y1="26.3" x2="44.4" y2="19.6"></line><line x1="39.7" y1="29.9" x2="48.9" y2="27.5"></line></g><g fill="#9A8A78"><circle cx="48.9" cy="36.5" r="1.3"></circle><circle cx="44.4" cy="44.4" r="1.3"></circle><circle cx="36.5" cy="48.9" r="1.3"></circle><circle cx="27.5" cy="48.9" r="1.3"></circle><circle cx="19.6" cy="44.4" r="1.3"></circle><circle cx="15.1" cy="36.5" r="1.3"></circle><circle cx="15.1" cy="27.5" r="1.3"></circle><circle cx="19.6" cy="19.6" r="1.3"></circle><circle cx="27.5" cy="15.1" r="1.3"></circle><circle cx="36.5" cy="15.1" r="1.3"></circle><circle cx="44.4" cy="19.6" r="1.3"></circle><circle cx="48.9" cy="27.5" r="1.3"></circle></g><g stroke="#3B2A1E" stroke-width="3.4" stroke-linecap="round"><line x1="39.0" y1="32.0" x2="59.0" y2="32.0"></line><line x1="36.9" y1="36.9" x2="51.1" y2="51.1"></line><line x1="32.0" y1="39.0" x2="32.0" y2="59.0"></line><line x1="27.1" y1="36.9" x2="12.9" y2="51.1"></line><line x1="25.0" y1="32.0" x2="5.0" y2="32.0"></line><line x1="27.1" y1="27.1" x2="12.9" y2="12.9"></line><line x1="32.0" y1="25.0" x2="32.0" y2="5.0"></line><line x1="36.9" y1="27.1" x2="51.1" y2="12.9"></line></g><g fill="#3B2A1E"><circle cx="60.0" cy="32.0" r="3.4"></circle><circle cx="51.8" cy="51.8" r="3.4"></circle><circle cx="32.0" cy="60.0" r="3.4"></circle><circle cx="12.2" cy="51.8" r="3.4"></circle><circle cx="4.0" cy="32.0" r="3.4"></circle><circle cx="12.2" cy="12.2" r="3.4"></circle><circle cx="32.0" cy="4.0" r="3.4"></circle><circle cx="51.8" cy="12.2" r="3.4"></circle></g><circle cx="32" cy="32" r="20" fill="none" stroke="#3B2A1E" stroke-width="3.6"></circle><circle cx="32" cy="32" r="7.5" fill="#F2B530" stroke="#3B2A1E" stroke-width="2"></circle></svg><span class="brand-name">Captain Dave<br><span>&amp; die Löwenzahn-Crew</span></span></a>
+<nav aria-label="Hauptmenü" class="nav">
+<a href="index.html">Startseite</a>
+<a href="radkueche.html" aria-current="page">Radküchen-Spiel</a>
+<a href="anheuern.html" class="nav-cta">Anheuern</a>
+</nav>
+</header>
+
+<main class="wrap">
+<p class="kicker">Das Spiel</p>
+<h1 class="title">Die Radküche</h1>
+<p class="lead">Koch aus geretteten Zutaten etwas Gutes, versorg die Nachbarschaft und lass dein Grätzl aufblühen. Aber Achtung: Die Schlange wächst!</p>
+
+<div class="hud" aria-live="polite">
+<div class="hud-item"><span class="hud-label">Versorgt</span><span class="hud-num"><span id="h-served">0</span> / <span id="h-goal">20</span></span></div>
+<div class="hud-item hud-queue"><span class="hud-label">Schlange</span><div class="qbar" role="progressbar" aria-label="Länge der Schlange" aria-valuemin="0" aria-valuemax="12" aria-valuenow="0" id="h-qbar"><div class="qfill" id="h-qfill"></div></div></div>
+<div class="hud-item"><span class="hud-label">Warm im Topf</span><span class="hud-num" id="h-warm">0</span></div>
+<div class="hud-item"><span class="hud-label">Samen</span><span class="hud-num" id="h-seeds">0</span></div>
+<div class="hud-item"><span class="hud-label">Blumen</span><span class="hud-num" id="h-flowers">0</span></div>
+<div class="hud-item"><span class="hud-label">Hummeln</span><span class="hud-num" id="h-bees">0</span></div>
+<div class="hud-item"><span class="hud-label">Punkte</span><span class="hud-num" id="h-score">0</span></div>
+</div>
+
+<div class="stage" id="stage">
+<svg id="scene" viewBox="0 0 1200 560" width="100%" role="img" aria-label="Eine Straße mit grauen Häusern. Captain Dave kommt mit der Radküche, Nachbarn stellen sich an, und mit jedem guten Gericht wachsen Blumen.">
+<rect x="0" y="0" width="1200" height="560" fill="#D6EAF2"></rect>
+<circle cx="1050" cy="90" r="50" fill="#F2B530"></circle>
+<g id="houses">
+<rect x="30" y="180" width="170" height="230" fill="#B8B4AD"></rect>
+<path d="M18 182 L115 120 L212 182 Z" fill="#8C8781"></path>
+<rect x="60" y="214" width="34" height="42" rx="4" fill="#FBF6EA"></rect><rect x="136" y="214" width="34" height="42" rx="4" fill="#FBF6EA"></rect><rect x="60" y="290" width="34" height="42" rx="4" fill="#FBF6EA"></rect><rect x="136" y="290" width="34" height="42" rx="4" fill="#FBF6EA"></rect>
+<rect x="220" y="140" width="140" height="270" fill="#A6A19A"></rect>
+<rect x="246" y="170" width="30" height="40" rx="4" fill="#FBF6EA"></rect><rect x="304" y="170" width="30" height="40" rx="4" fill="#FBF6EA"></rect><rect x="246" y="240" width="30" height="40" rx="4" fill="#FBF6EA"></rect><rect x="304" y="240" width="30" height="40" rx="4" fill="#FBF6EA"></rect>
+<rect x="820" y="160" width="160" height="250" fill="#A6A19A"></rect>
+<rect x="846" y="190" width="34" height="42" rx="4" fill="#FBF6EA"></rect><rect x="920" y="190" width="34" height="42" rx="4" fill="#FBF6EA"></rect><rect x="846" y="270" width="34" height="42" rx="4" fill="#FBF6EA"></rect><rect x="920" y="270" width="34" height="42" rx="4" fill="#FBF6EA"></rect>
+<rect x="1000" y="200" width="180" height="210" fill="#B8B4AD"></rect>
+<path d="M990 202 L1090 146 L1190 202 Z" fill="#8C8781"></path>
+<rect x="1030" y="236" width="34" height="42" rx="4" fill="#FBF6EA"></rect><rect x="1114" y="236" width="34" height="42" rx="4" fill="#FBF6EA"></rect>
+</g>
+<g id="trees">
+<g class="tree" id="tree1"><rect x="594" y="300" width="14" height="112" fill="#6B4A32"></rect><circle cx="584" cy="292" r="40" fill="#7FA36F"></circle><circle cx="622" cy="286" r="42" fill="#5E7F5A"></circle><circle cx="602" cy="252" r="38" fill="#7FA36F"></circle></g>
+<g class="tree" id="tree2"><rect x="704" y="320" width="12" height="92" fill="#6B4A32"></rect><circle cx="696" cy="312" r="32" fill="#5E7F5A"></circle><circle cx="726" cy="306" r="30" fill="#7FA36F"></circle></g>
+</g>
+<g id="ivy"></g>
+<rect x="0" y="410" width="1200" height="74" fill="#8F8A83"></rect>
+<rect x="0" y="484" width="1200" height="76" fill="#A9A49C"></rect>
+<path d="M0 484 L1200 484" stroke="#7E7973" stroke-width="3"></path>
+<path id="meadow" d="M0 490 Q150 478 300 488 Q480 500 660 486 Q860 472 1040 490 Q1120 498 1200 486 L1200 560 L0 560 Z" fill="#B9D29C" opacity="0"></path>
+<g id="plants"></g>
+<g id="queue"></g>
+<g id="kitchen" style="transform: translateX(-480px); transition: transform 2.6s cubic-bezier(.2,.7,.3,1)">
+<line x1="34" y1="442" x2="34" y2="250" stroke="#3B2A1E" stroke-width="5" stroke-linecap="round"></line>
+<path d="M34 250 L60 258 L34 266 Z" fill="#F2B530" stroke="#3B2A1E" stroke-width="2" stroke-linejoin="round"></path>
+<path d="M41 262 L41 408 L112 398 Z" fill="#FFFFFF" stroke="#3B2A1E" stroke-width="3" stroke-linejoin="round"></path>
+<g class="wheel"><circle cx="54" cy="452" r="26" fill="none" stroke="#3B2A1E" stroke-width="6"></circle><line x1="54" y1="428" x2="54" y2="476" stroke="#3B2A1E" stroke-width="2"></line><line x1="30" y1="452" x2="78" y2="452" stroke="#3B2A1E" stroke-width="2"></line></g>
+<g class="wheel"><circle cx="232" cy="456" r="22" fill="none" stroke="#3B2A1E" stroke-width="6"></circle><line x1="232" y1="436" x2="232" y2="476" stroke="#3B2A1E" stroke-width="2"></line><line x1="212" y1="456" x2="252" y2="456" stroke="#3B2A1E" stroke-width="2"></line></g>
+<path d="M54 452 L100 424 L142 424 L160 436 M100 424 L92 394 M142 424 L136 388" fill="none" stroke="#2F5233" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"></path>
+<line x1="80" y1="392" x2="102" y2="392" stroke="#3B2A1E" stroke-width="6" stroke-linecap="round"></line>
+<line x1="128" y1="386" x2="146" y2="386" stroke="#3B2A1E" stroke-width="5" stroke-linecap="round"></line>
+<rect x="150" y="380" width="124" height="54" rx="8" fill="#C97B3D"></rect>
+<text x="212" y="414" text-anchor="middle" font-family="'Bricolage Grotesque', sans-serif" font-weight="800" font-size="14" fill="#FBF6EA" letter-spacing="1">RADKÜCHE</text>
+<rect x="186" y="374" width="46" height="6" rx="2" fill="#5D5954"></rect>
+<g id="flame" opacity="0"><path class="flick" d="M194 374 Q197 364 200 374 Z" fill="#E8792F"></path><path class="flick f2" d="M204 374 Q208 360 212 374 Z" fill="#F2B530"></path><path class="flick" d="M216 374 Q219 364 222 374 Z" fill="#E8792F"></path></g>
+<g id="pot"><path d="M184 336 L234 336 L231 368 Q230 372 226 372 L192 372 Q188 372 187 368 Z" fill="#3B2A1E"></path><rect x="180" y="330" width="58" height="7" rx="3" fill="#5D5954"></rect><rect x="203" y="324" width="12" height="7" rx="3" fill="#5D5954"></rect><line x1="180" y1="346" x2="172" y2="346" stroke="#3B2A1E" stroke-width="4" stroke-linecap="round"></line><line x1="238" y1="346" x2="246" y2="346" stroke="#3B2A1E" stroke-width="4" stroke-linecap="round"></line></g>
+<g id="steam" opacity="0"><path class="rise" d="M196 318 Q190 306 196 294 Q202 282 196 270" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"></path><path class="rise r2" d="M210 318 Q204 304 210 290 Q216 276 210 262" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"></path><path class="rise r3" d="M224 318 Q218 306 224 294 Q230 282 224 270" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"></path></g>
+<g id="awning" class="awning">
+<line x1="154" y1="380" x2="154" y2="300" stroke="#3B2A1E" stroke-width="4"></line><line x1="270" y1="380" x2="270" y2="300" stroke="#3B2A1E" stroke-width="4"></line>
+<path d="M144 298 L280 298 L272 318 L152 318 Z" fill="#F2B530"></path>
+<path d="M166 298 L170 318 M194 298 L196 318 M222 298 L222 318 M250 298 L248 318" stroke="#FFFFFF" stroke-width="10"></path>
+<path d="M152 318 Q160 328 168 318 Q176 328 184 318 Q192 328 200 318 Q208 328 216 318 Q224 328 232 318 Q240 328 248 318 Q256 328 264 318 Q268 324 272 318" fill="#F2B530" stroke="#3B2A1E" stroke-width="1.5"></path>
+</g>
+<g id="rider">
+<path d="M92 392 L104 344" stroke="#9CC7DF" stroke-width="16" stroke-linecap="round"></path>
+<path d="M104 352 L136 384" stroke="#9CC7DF" stroke-width="8" stroke-linecap="round"></path>
+<path d="M94 396 L116 422 L120 448" fill="none" stroke="#3B2A1E" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"></path>
+<circle cx="108" cy="324" r="15" fill="#E8B98E"></circle>
+<g transform="translate(108 326) scale(-0.92 0.92) translate(-298 -210)"><path d="M275 197 L279 184 Q298 175 318 184 L322 197 Z" fill="#FFFFFF" stroke="#3B2A1E" stroke-width="2" stroke-linejoin="round"></path><rect x="278" y="193" width="42" height="8" fill="#1F2A44"></rect><path d="M300 199 L268 201 Q274 210 300 206 Z" fill="#1F2A44"></path><circle cx="298" cy="188" r="3.6" fill="#F2B530"></circle><path d="M295 188 L301 188 M298 185 L298 191" stroke="#1F2A44" stroke-width="1.2"></path></g>
+</g>
+</g>
+<g id="captain" opacity="0">
+<path d="M334 470 L336 432 M350 470 L348 432" stroke="#3B2A1E" stroke-width="8" stroke-linecap="round"></path>
+<rect x="328" y="386" width="28" height="52" rx="11" fill="#9CC7DF"></rect>
+<g id="ladle"><path d="M332 396 L306 380" stroke="#9CC7DF" stroke-width="8" stroke-linecap="round"></path>
+<path d="M306 380 L292 352" stroke="#6B4A32" stroke-width="4" stroke-linecap="round"></path>
+<ellipse cx="290" cy="350" rx="7" ry="4" fill="#6B4A32"></ellipse></g>
+<circle cx="342" cy="368" r="15" fill="#E8B98E"></circle>
+<circle cx="348" cy="366" r="1.8" fill="#3B2A1E"></circle>
+<path d="M342 375 Q347 378 352 374" fill="none" stroke="#3B2A1E" stroke-width="1.6" stroke-linecap="round"></path>
+<g transform="translate(342 370) scale(-0.92 0.92) translate(-298 -210)"><path d="M275 197 L279 184 Q298 175 318 184 L322 197 Z" fill="#FFFFFF" stroke="#3B2A1E" stroke-width="2" stroke-linejoin="round"></path><rect x="278" y="193" width="42" height="8" fill="#1F2A44"></rect><path d="M300 199 L268 201 Q274 210 300 206 Z" fill="#1F2A44"></path><circle cx="298" cy="188" r="3.6" fill="#F2B530"></circle><path d="M295 188 L301 188 M298 185 L298 191" stroke="#1F2A44" stroke-width="1.2"></path></g>
+</g>
+<g id="bees" pointer-events="none"></g>
+</svg>
+
+<div id="bubbles" class="bubbles" aria-live="polite"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<div id="petals" class="petals"></div>
+
+<div id="overlay" class="overlay">
+<div class="overlay-card">
+<p class="kicker" id="ov-kicker">Bereit, Captain?</p>
+<h2 class="ov-title" id="ov-title">Die Radküche öffnet gleich</h2>
+<div id="ov-body" class="ov-body">
+<ol class="howto">
+<li>Leg gerettete Zutaten <strong>in der richtigen Reihenfolge</strong> in den Topf, dazu die Basis und Gewürze.</li>
+<li>Drück auf <strong>Abschmecken</strong>. Die Jury bewertet mit 1 bis 3 Kochlöffeln. Je besser das Gericht, desto mehr Nachbarn werden satt und desto mehr <strong>Samen</strong> bekommst du.</li>
+<li>Klick mit deinen Samen auf die Wiese vorne oder auf ein Haus. Blumen locken Hummeln an und machen die Wartenden geduldiger.</li>
+</ol>
+<p class="ov-goal">Versorg 20 Nachbarn, bevor die Schlange das andere Ende der Straße erreicht.</p>
+</div>
+<div class="ov-actions">
+<button type="button" id="ov-start" class="btn-solid">Radküche öffnen</button>
+<a href="anheuern.html" id="ov-crew" class="btn-line" hidden>Komm in die echte Crew</a>
+</div>
+</div>
+</div>
+</div>
+
+<div class="kitchen-ui">
+<section class="panel cook" aria-labelledby="cook-h">
+<p class="season" id="season">Heute ist Kürbiszeit!</p>
+<h2 id="cook-h" class="panel-h">Deine Küche</h2>
+
+<p class="group-h">Gerettet in der Rettungskiste</p>
+<div id="crate" class="chips" role="group" aria-label="Gerettete Zutaten"></div>
+<div class="refill-row">
+<button type="button" id="refill" class="btn-line small">Neue Rettungstour</button>
+<span id="refill-note" class="note"></span>
+</div>
+
+<p class="group-h">Immer dabei</p>
+<div id="base" class="chips" role="group" aria-label="Basis"></div>
+
+<p class="group-h">Gewürzregal</p>
+<div id="spices" class="chips" role="group" aria-label="Gewürze"></div>
+
+<p class="group-h">Im Topf <span class="note">(in dieser Reihenfolge)</span></p>
+<ol id="potlist" class="potlist"><li class="empty">Noch leer. Womit fängst du an?</li></ol>
+<div class="pot-actions">
+<button type="button" id="cook" class="btn-solid">Abschmecken und servieren</button>
+<button type="button" id="undo" class="btn-line">Zurück</button>
+<button type="button" id="clear" class="btn-line">Ausleeren</button>
+</div>
+</section>
+
+<section class="panel jury" aria-labelledby="jury-h" aria-live="polite">
+<h2 id="jury-h" class="panel-h">Die Jury</h2>
+<div id="verdict" class="verdict">
+<p class="v-empty">Koch dein erstes Gericht, dann sag ich dir ehrlich, wie es geworden ist.</p>
+</div>
+<div class="pause-row">
+<button type="button" id="pause" class="btn-line small">Pause</button>
+<p class="best">Dein Rekord: <strong id="best">0</strong> Punkte</p>
+</div>
+</section>
+</div>
+</main>
+
+<footer class="foot">
+<p class="foot-big">Gemeinsam gestalten statt zusehen.</p>
+<p>Captain Dave &amp; die Löwenzahn-Crew · Wien · <a href="index.html">Zur Startseite</a></p>
+</footer>
+</div>
+</body>
+</html>
