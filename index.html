@@ -19,7 +19,49 @@ a{color:#2F5233}a:hover{color:#1E3822}
 @keyframes buzz{0%{transform:translate(0,0)}25%{transform:translate(38px,-22px)}50%{transform:translate(70px,6px)}75%{transform:translate(30px,24px)}100%{transform:translate(0,0)}}
 @media (prefers-reduced-motion: reduce){.scene *{transition-duration:0.01s !important;transition-delay:0s !important;animation:none !important}}
 </style>
-<style>[hidden]{display:none !important}</style>
+<style>[hidden]{display:none !important}
+.scene.can-plant{cursor:pointer}
+.grow{transform-box:fill-box;transform-origin:50% 100%;animation:grow .7s cubic-bezier(.3,1.5,.5,1) both}
+@keyframes grow{from{transform:scale(0)}to{transform:scale(1)}}
+.fade-in{animation:fadein 1.4s ease both}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.sway{transform-box:fill-box;transform-origin:50% 100%;animation:sway 3.2s ease-in-out infinite}
+@keyframes sway{0%,100%{transform:rotate(-2.5deg)}50%{transform:rotate(2.5deg)}}
+.wing{animation:flap .12s linear infinite alternate;transform-box:fill-box;transform-origin:50% 100%}
+@keyframes flap{from{transform:scaleY(1)}to{transform:scaleY(.45)}}
+.scene-toast{position:absolute;left:50%;top:14px;transform:translate(-50%,-8px);max-width:min(92%,560px);background:#2F5233;color:#FFFFFF;font-weight:700;font-size:16px;line-height:1.4;padding:12px 20px;border-radius:18px;opacity:0;pointer-events:none;transition:opacity .35s ease,transform .35s ease;text-align:center;box-shadow:0 6px 20px rgba(59,42,30,.18)}
+.scene-toast.show{opacity:1;transform:translate(-50%,0)}
+.scene-toast small{display:block;font-weight:600;font-size:14px;opacity:.92;margin-top:2px}
+.petals{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.petal{position:absolute;top:-20px;width:12px;height:9px;border-radius:60% 40% 60% 40%;animation:fall 3.2s ease-in forwards}
+@keyframes fall{to{transform:translate(var(--dx),620px) rotate(540deg);opacity:.2}}
+.garden-panel{margin-top:36px;background:#FFFFFF;border-radius:28px;padding:28px;display:flex;flex-wrap:wrap;gap:32px}
+.garden-intro{flex:1 1 400px;min-width:0}
+.garden-kicker{margin:0 0 4px;font-family:'Caveat',cursive;font-size:28px;color:#2F5233}
+.garden-title{margin:0 0 10px;font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(26px,3vw,34px);line-height:1.15}
+.seed-row{display:flex;flex-wrap:wrap;gap:8px}
+.seed{display:inline-flex;align-items:center;gap:8px;min-height:44px;border:2px solid #2F5233;background:#FFFFFF;color:#2F5233;font:700 15px 'Nunito',sans-serif;padding:8px 14px;border-radius:999px;cursor:pointer}
+.seed[aria-pressed=true]{background:#2F5233;color:#FFFFFF}
+.garden-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+.btn-solid,.btn-line{min-height:44px;font:700 16px 'Nunito',sans-serif;padding:12px 22px;border-radius:999px;cursor:pointer}
+.btn-solid{border:0;background:#2F5233;color:#FFFFFF}
+.btn-line{border:2px solid #2F5233;background:transparent;color:#2F5233}
+.garden-stats{flex:1 1 320px;min-width:0;display:flex;flex-direction:column;gap:18px;background:#FBF6EA;border-radius:22px;padding:22px}
+.stat-label{margin:0;font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#6B5A4A}
+.score-num{margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:56px;line-height:1.05;color:#2F5233}
+.stat-title{margin:4px 0 0;font-size:17px}
+.stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.stat-num{margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:26px;line-height:1.2}
+.meter{height:16px;border-radius:999px;background:#E9DCC4;overflow:hidden;margin-top:8px}
+.meter-fill{height:100%;width:0;background:#2F5233;border-radius:999px;transition:width .6s ease}
+.badge-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.badge{display:inline-block;background:#F2B530;color:#3B2A1E;font-weight:700;font-size:14px;padding:6px 12px;border-radius:999px}
+.badge-empty{font-size:15px;color:#6B5A4A}
+.stat-best{margin:0;font-size:15px;color:#6B5A4A}
+@media (prefers-reduced-motion: reduce){.grow,.fade-in,.sway,.wing,.petal{animation:none !important}}
+.garden-ivy,.garden-plants,.garden-bees{transition:opacity 1s ease}
+.scene:not(.can-plant) .garden-ivy,.scene:not(.can-plant) .garden-plants,.scene:not(.can-plant) .garden-bees{opacity:0}
+</style>
 <script src="app.js" defer></script>
 </head>
 <body data-page="home">
@@ -215,6 +257,50 @@ a{color:#2F5233}a:hover{color:#1E3822}
 <button type="button" class="step" data-click="pick" data-index="3" aria-pressed="false" style="border: 2px solid #2F5233; cursor: pointer; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 15px; padding: 10px 18px; border-radius: 999px; background: transparent; color: #2F5233">Nachbarn</button>
 <button type="button" class="step" data-click="pick" data-index="4" aria-pressed="false" style="border: 2px solid #2F5233; cursor: pointer; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 15px; padding: 10px 18px; border-radius: 999px; background: transparent; color: #2F5233">Es blüht</button>
 <button type="button" class="step" data-click="pick" data-index="5" aria-pressed="false" style="border: 2px solid #2F5233; cursor: pointer; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 15px; padding: 10px 18px; border-radius: 999px; background: transparent; color: #2F5233">Leben</button>
+</div>
+<div id="garten" class="garden-panel">
+<div class="garden-intro">
+<p class="garden-kicker">Jetzt bist du dran</p>
+<h3 class="garden-title">Pflanz dein Grätzl zum Blühen</h3>
+<p style="margin: 0 0 18px">Klick auf die Wiese und pflanze heimische Blumen. Klick auf ein Haus, und auf seinem Dach beginnt es zu wachsen. Je mehr blüht, desto mehr Hummeln kommen. Vier Pflanzen auf einem Dach, und das ganze Haus wird grün.</p>
+<p style="margin: 0 0 8px; font-weight: 700; font-size: 16px">Welche Blume pflanzt du?</p>
+<div id="seeds" role="group" aria-label="Blume wählen" class="seed-row">
+<button type="button" class="seed" data-seed="mix" aria-pressed="true"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="6" cy="7" r="4" fill="#F5C518"></circle><circle cx="14" cy="7" r="4" fill="#3C6FD1"></circle><circle cx="10" cy="14" r="4" fill="#D7322B"></circle></svg>Bunt gemischt</button>
+<button type="button" class="seed" data-seed="loewenzahn" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7" fill="#F5C518" stroke="#D9A400" stroke-width="2.5" stroke-dasharray="2 1.5"></circle></svg>Löwenzahn</button>
+<button type="button" class="seed" data-seed="sonnenblume" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="#F2B530" stroke="#D9901A" stroke-width="3" stroke-dasharray="2.5 1.5"></circle><circle cx="10" cy="10" r="3.5" fill="#6B4A32"></circle></svg>Sonnenblume</button>
+<button type="button" class="seed" data-seed="kornblume" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7" fill="#3C6FD1" stroke="#2A4FA8" stroke-width="2.5" stroke-dasharray="2 1.5"></circle></svg>Kornblume</button>
+<button type="button" class="seed" data-seed="mohn" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="#D7322B"></circle><circle cx="10" cy="10" r="2.5" fill="#2B1D17"></circle></svg>Klatschmohn</button>
+<button type="button" class="seed" data-seed="margerite" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.5" fill="#FFFFFF" stroke="#CFC8BB" stroke-width="2.5" stroke-dasharray="2 1.5"></circle><circle cx="10" cy="10" r="3" fill="#F2B530"></circle></svg>Margerite</button>
+<button type="button" class="seed" data-seed="salbei" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><ellipse cx="10" cy="4" rx="3" ry="2.5" fill="#9A7BD0"></ellipse><ellipse cx="10" cy="9" rx="3.5" ry="3" fill="#7B5BB5"></ellipse><ellipse cx="10" cy="15" rx="3.5" ry="3" fill="#7B5BB5"></ellipse></svg>Wiesen-Salbei</button>
+</div>
+<div class="garden-actions">
+<button type="button" id="plant-one" class="btn-solid">Eine Blume pflanzen</button>
+<button type="button" id="share-garden" class="btn-line">Erzähl's weiter</button>
+<button type="button" id="reset-garden" class="btn-line">Neu anfangen</button>
+</div>
+</div>
+<div class="garden-stats">
+<div class="score-box">
+<p class="stat-label">Blühpunkte</p>
+<p id="g-score" class="score-num">0</p>
+<p class="stat-title">Dein Titel: <strong id="g-title">Samenkorn</strong></p>
+</div>
+<div class="stat-grid">
+<div><p class="stat-label">Blumen</p><p id="g-flowers" class="stat-num">0</p></div>
+<div><p class="stat-label">Hummeln</p><p id="g-bees" class="stat-num">0</p></div>
+<div><p class="stat-label">Grüne Häuser</p><p class="stat-num"><span id="g-houses">0</span> von 4</p></div>
+<div><p class="stat-label">Blumenarten</p><p class="stat-num"><span id="g-species">0</span> von 6</p></div>
+</div>
+<div>
+<p class="stat-label" id="g-meter-label">Dein Grätzl blüht zu 0 %</p>
+<div class="meter" role="progressbar" aria-labelledby="g-meter-label" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="g-meter"><div id="g-meter-fill" class="meter-fill"></div></div>
+</div>
+<div>
+<p class="stat-label">Abzeichen</p>
+<div id="g-badges" class="badge-row"><span class="badge-empty">Noch keine. Pflanz los!</span></div>
+</div>
+<p class="stat-best">Dein Rekord: <strong id="g-best">0</strong> Blühpunkte</p>
+</div>
 </div>
 <p style="margin: 48px 0 0; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: clamp(24px, 2.6vw, 32px)">Das kann deine Straße sein.</p>
 </section>
