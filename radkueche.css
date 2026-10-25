@@ -89,8 +89,6 @@ button:disabled{opacity:.45;cursor:not-allowed}
 
 .kitchen-ui{display:flex;flex-wrap:wrap;gap:20px;margin-top:20px}
 .panel{background:#FFFFFF;border-radius:28px;padding:24px}
-.cook{flex:3 1 520px;min-width:0}
-.jury{flex:2 1 320px;min-width:0;display:flex;flex-direction:column}
 .panel-h{margin:0 0 6px;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:28px;line-height:1.15}
 .season{margin:0 0 4px;font-family:'Caveat',cursive;font-size:26px;color:#A85E2B}
 .group-h{margin:18px 0 8px;font-size:14px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#6B5A4A}
@@ -102,9 +100,9 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .chip .count{background:#2F5233;color:#FFFFFF;font-size:13px;border-radius:999px;padding:0 8px;line-height:20px}
 .chip.spice{border-style:dashed}
 .refill-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:10px}
-.potlist{margin:0;padding:12px 16px 12px 40px;min-height:56px;background:#FBF6EA;border-radius:16px;display:flex;flex-wrap:wrap;gap:6px 22px}
+.potlist{margin:0;padding:10px 14px;min-height:48px;background:#FBF6EA;border-radius:14px;display:flex;flex-wrap:wrap;gap:4px 16px;list-style:none;font-size:15px}
 .potlist li{font-weight:700}
-.potlist li.empty{list-style:none;margin-left:-24px;font-weight:600;color:#6B5A4A}
+.potlist li.empty{font-weight:600;color:#6B5A4A}
 .pot-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
 .verdict{flex:1}
 .v-empty{margin:0;color:#6B5A4A}
@@ -137,3 +135,65 @@ button:disabled{opacity:.45;cursor:not-allowed}
 @media (prefers-reduced-motion: reduce){
   *{animation-duration:.01s !important;animation-iteration-count:1 !important;transition-duration:.01s !important}
 }
+
+/* Küche mit Bildern */
+.kitchen-ui{align-items:flex-start}
+.pantry{flex:3 1 480px;min-width:0}
+.hint{margin:0 0 6px;font-size:16px;color:#6B5A4A}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
+.tiles.spices{grid-template-columns:repeat(auto-fill,minmax(84px,1fr))}
+.tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:96px;padding:10px 6px 8px;border:2px solid #E3D6BE;background:#FBF6EA;border-radius:18px;cursor:pointer;font:700 14px 'Nunito',sans-serif;color:#3B2A1E;line-height:1.2;text-align:center;transition:transform .12s ease,border-color .12s ease}
+.tile:hover:not(:disabled){border-color:#2F5233;transform:translateY(-2px)}
+.tile:active:not(:disabled){transform:scale(.95)}
+.tile svg{width:48px;height:48px}
+.tile.spice{min-height:84px;border-style:dashed}
+.tile.spice svg{width:40px;height:40px}
+.tile .count{position:absolute;top:6px;right:6px;background:#2F5233;color:#FFFFFF;font-size:12px;border-radius:999px;padding:0 7px;line-height:20px}
+.potstage{background:radial-gradient(ellipse at 40% 60%,#F3E6C9 0%,#FBF6EA 70%);border-radius:20px;padding:6px 6px 0}
+#potsvg{display:block}
+#potsvg.plop #ui-pot{animation:plop .35s ease}
+@keyframes plop{0%{transform:translateY(0)}40%{transform:translateY(3px)}100%{transform:translateY(0)}}
+#ui-pot{transform-box:view-box;transform-origin:160px 240px}
+#potsvg.cooking #ui-pot{animation:rumble .18s linear infinite alternate}
+@keyframes rumble{from{transform:rotate(-.8deg) translateY(0)}to{transform:rotate(.8deg) translateY(-1px)}}
+.ui-steam{opacity:.75}
+#potsvg.cooking .ui-steam{opacity:1}
+#potsvg.cooking .ui-steam path{stroke-width:9}
+.float{transform-box:fill-box;transform-origin:50% 50%;animation:floaty 3.4s ease-in-out infinite}
+@keyframes floaty{0%,100%{transform:translate(0,0) rotate(0)}50%{transform:translate(3px,-2px) rotate(12deg)}}
+.bub{transform-box:fill-box;transform-origin:50% 50%;animation:bub 1s ease-out infinite}
+@keyframes bub{0%{transform:scale(.2);opacity:0}50%{opacity:1}100%{transform:scale(1.3) translateY(-4px);opacity:0}}
+.drop{animation:drop .6s ease-out forwards}
+@keyframes drop{from{transform:translate(0,0);opacity:1}to{transform:translate(var(--dx),var(--dy));opacity:0}}
+#ui-ladle{transform-box:view-box}
+.flyer-layer{position:fixed;inset:0;pointer-events:none;z-index:60}
+.flying{position:fixed;pointer-events:none;filter:drop-shadow(0 6px 8px rgba(59,42,30,.25))}
+.flying svg{width:100%;height:100%}
+.jury{margin-top:20px;padding-top:16px;border-top:2px solid #F3E6C9}
+.jury-h{margin:0 0 6px;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:22px}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:8px}.tile{min-height:84px;font-size:13px}.tile svg{width:40px;height:40px}}
+
+/* Spielfeld: links Szene und Topf, rechts die Zutaten */
+.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.game-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:18px;align-items:start}
+.left-col{position:sticky;top:8px;display:flex;flex-direction:column;gap:12px}
+.right-col{display:flex;flex-direction:column;gap:18px}
+.right-col .panel{padding:20px}
+.potcard{display:flex;gap:14px;align-items:center;background:#FFFFFF;border-radius:24px;padding:12px}
+.potcard .potstage{flex:1 1 52%;min-width:0}
+.potctl{flex:1 1 48%;min-width:0}
+.potctl .group-h{margin-top:0}
+.potctl .pot-actions{margin-top:10px;gap:8px}
+.potctl .btn-solid,.potctl .btn-line{min-height:42px;padding:8px 16px;font-size:15px}
+.jurycard .jury{margin-top:0;padding-top:0;border-top:0}
+.jurycard .pause-row{margin-top:14px}
+@media (max-width:1000px){
+  .game-grid{grid-template-columns:1fr}
+  .left-col{position:static}
+}
+@media (max-width:640px){
+  .potcard{flex-direction:column;align-items:stretch}
+}
+.jurycard{padding:16px 20px}
+.jurycard .v-head{font-size:22px}
+.jurycard .v-list{font-size:16px}

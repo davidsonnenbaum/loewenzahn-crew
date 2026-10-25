@@ -388,7 +388,7 @@
     b.textContent = text;
     const left = Math.max(12, Math.min(88, x / 1200 * 100));
     b.style.left = left + '%';
-    b.style.top = (y / 560 * 100) + '%';
+    b.style.top = ((y - 100) / 460 * 100) + '%';
     bubbles.appendChild(b);
     requestAnimationFrame(() => b.classList.add('show'));
     setTimeout(() => { b.classList.remove('show'); setTimeout(() => b.remove(), 400); }, ms || 4200);
@@ -419,16 +419,60 @@
     S.queue.forEach((n, i) => { n.tx = QX0 + i * QGAP; });
   }
 
-  // ----- Rettungskiste, Basis, Gewürze -----
-  function chip(id, def, extra) {
+  // ----- Bilder der Zutaten -----
+  const ICONS = {
+    brot: '<ellipse cx="24" cy="31" rx="19" ry="11" fill="#B9844F"></ellipse><path d="M6 30 Q24 6 42 30 Z" fill="#D9A56B"></path><path d="M15 22 l4 7 M22 18 l4 8 M30 19 l4 7" stroke="#A9733F" stroke-width="2.4" stroke-linecap="round"></path>',
+    kartoffeln: '<ellipse cx="18" cy="27" rx="12" ry="10" fill="#D9B26F"></ellipse><ellipse cx="31" cy="32" rx="11" ry="8" fill="#C9A15E"></ellipse><circle cx="14" cy="24" r="1.5" fill="#9C7A44"></circle><circle cx="21" cy="30" r="1.5" fill="#9C7A44"></circle><circle cx="33" cy="30" r="1.5" fill="#8E6E3C"></circle>',
+    karotten: '<path d="M31 12 Q40 15 36 23 L14 41 Q9 43 11 38 Z" fill="#E8792F"></path><path d="M20 30 l4 2 M26 24 l4 2" stroke="#C25E1F" stroke-width="2" stroke-linecap="round"></path><path d="M32 13 L36 4 M34 15 L43 9 M36 18 L44 17" stroke="#4E9A45" stroke-width="3" stroke-linecap="round"></path>',
+    bananen: '<path d="M7 16 Q12 40 41 34 Q43 30 39 29 Q17 31 13 14 Z" fill="#F5D547" stroke="#C9A72B" stroke-width="1.5"></path><circle cx="20" cy="29" r="1.6" fill="#6B4A32"></circle><circle cx="28" cy="31" r="1.3" fill="#6B4A32"></circle><path d="M7 16 L5 12" stroke="#6B4A32" stroke-width="3" stroke-linecap="round"></path>',
+    pilze: '<rect x="19" y="24" width="10" height="17" rx="4" fill="#F1ECE0"></rect><path d="M6 27 Q24 2 42 27 Z" fill="#D9CBB5"></path><circle cx="18" cy="18" r="2" fill="#C2B49C"></circle><circle cx="29" cy="15" r="2.4" fill="#C2B49C"></circle>',
+    linsen: '<circle cx="14" cy="32" r="4" fill="#B5651D"></circle><circle cx="22" cy="34" r="4" fill="#C47A2F"></circle><circle cx="30" cy="32" r="4" fill="#B5651D"></circle><circle cx="18" cy="26" r="4" fill="#C47A2F"></circle><circle cx="26" cy="26" r="4" fill="#B5651D"></circle><circle cx="34" cy="27" r="4" fill="#C47A2F"></circle><circle cx="22" cy="20" r="4" fill="#B5651D"></circle><circle cx="30" cy="20" r="4" fill="#C47A2F"></circle>',
+    aepfel: '<circle cx="24" cy="28" r="14" fill="#C9463D"></circle><ellipse cx="18" cy="22" rx="4" ry="2.6" fill="#E57A6F"></ellipse><path d="M24 15 L25 8" stroke="#6B4A32" stroke-width="3" stroke-linecap="round"></path><ellipse cx="30" cy="10" rx="6" ry="3" fill="#4E9A45" transform="rotate(-20 30 10)"></ellipse>',
+    kuerbis: '<ellipse cx="24" cy="29" rx="19" ry="13" fill="#E8792F"></ellipse><path d="M16 18 Q12 29 16 41 M24 16 L24 42 M32 18 Q36 29 32 41" fill="none" stroke="#C25E1F" stroke-width="2"></path><rect x="21" y="9" width="6" height="9" rx="2" fill="#4E7A45"></rect>',
+    kraut: '<circle cx="24" cy="26" r="17" fill="#C9DDB0"></circle><path d="M10 22 Q24 32 38 22 M12 30 Q24 38 36 30 M24 10 Q18 24 24 42" fill="none" stroke="#9DBB7E" stroke-width="2"></path>',
+    rueben: '<circle cx="24" cy="29" r="12" fill="#8E2B4E"></circle><path d="M24 41 L24 46" stroke="#8E2B4E" stroke-width="3" stroke-linecap="round"></path><path d="M24 17 Q18 6 12 6 M24 17 Q26 6 32 4" fill="none" stroke="#4E9A45" stroke-width="3" stroke-linecap="round"></path><ellipse cx="19" cy="25" rx="3" ry="2" fill="#B14A6E"></ellipse>',
+    lauch: '<rect x="20" y="22" width="9" height="22" rx="4" fill="#F1ECE0"></rect><rect x="20" y="10" width="9" height="16" fill="#8DB36B"></rect><path d="M22 12 L12 2 M25 10 L25 1 M27 12 L37 3" stroke="#5E8C3A" stroke-width="4" stroke-linecap="round"></path>',
+    sellerie: '<circle cx="24" cy="30" r="13" fill="#D8D3A8"></circle><circle cx="15" cy="34" r="4" fill="#CBC593"></circle><circle cx="33" cy="33" r="4" fill="#CBC593"></circle><path d="M20 18 L16 6 M24 17 L24 4 M28 18 L33 6" stroke="#5E8C3A" stroke-width="3" stroke-linecap="round"></path>',
+    pastinaken: '<path d="M31 12 Q40 15 36 23 L14 41 Q9 43 11 38 Z" fill="#EFE3C2" stroke="#D3C397" stroke-width="1.5"></path><path d="M32 13 L36 5 M34 15 L42 11" stroke="#7E9A5E" stroke-width="3" stroke-linecap="round"></path>',
+    birnen: '<path d="M24 11 Q31 11 30 21 Q38 26 36 35 Q34 43 24 43 Q14 43 12 35 Q10 26 18 21 Q17 11 24 11 Z" fill="#C8C15A"></path><path d="M24 11 L25 5" stroke="#6B4A32" stroke-width="3" stroke-linecap="round"></path>',
+    zwetschken: '<ellipse cx="18" cy="28" rx="9" ry="12" fill="#5B3A7A"></ellipse><ellipse cx="31" cy="30" rx="9" ry="11" fill="#6E4A8E"></ellipse><ellipse cx="15" cy="23" rx="2" ry="4" fill="#8B6BA8"></ellipse>',
+    spinat: '<ellipse cx="18" cy="26" rx="9" ry="15" fill="#3F7A3A" transform="rotate(-20 18 26)"></ellipse><ellipse cx="30" cy="26" rx="9" ry="15" fill="#4E8A45" transform="rotate(20 30 26)"></ellipse><path d="M18 26 L22 42 M30 26 L26 42" stroke="#2F5233" stroke-width="2"></path>',
+    baerlauch: '<path d="M14 42 Q8 20 18 6 Q22 24 14 42 Z" fill="#4E9A45"></path><path d="M24 42 Q20 18 28 4 Q32 24 24 42 Z" fill="#5EAA52"></path><path d="M33 42 Q30 22 38 10 Q41 26 33 42 Z" fill="#4E9A45"></path>',
+    radieschen: '<circle cx="24" cy="30" r="11" fill="#D8436A"></circle><path d="M24 41 L24 46" stroke="#F1ECE0" stroke-width="3" stroke-linecap="round"></path><path d="M24 19 Q18 8 12 8 M24 19 Q28 8 34 6" fill="none" stroke="#4E9A45" stroke-width="3" stroke-linecap="round"></path>',
+    spargel: '<path d="M14 44 L16 10 M24 44 L24 6 M34 44 L32 10" stroke="#8FB45A" stroke-width="6" stroke-linecap="round"></path><path d="M16 10 l-2 4 M24 6 l-2 4 M32 10 l-2 4" stroke="#6E8F3E" stroke-width="3" stroke-linecap="round"></path>',
+    erdbeeren: '<path d="M24 44 Q8 30 12 18 Q24 12 36 18 Q40 30 24 44 Z" fill="#D7322B"></path><path d="M14 16 L24 22 L34 16 L28 12 L24 8 L20 12 Z" fill="#4E9A45"></path><circle cx="20" cy="28" r="1.2" fill="#F5D547"></circle><circle cx="28" cy="27" r="1.2" fill="#F5D547"></circle><circle cx="24" cy="34" r="1.2" fill="#F5D547"></circle>',
+    zucchini: '<rect x="8" y="18" width="34" height="13" rx="6.5" fill="#5E8C3A" transform="rotate(-25 24 24)"></rect><path d="M38 12 l4 -3" stroke="#3F6A2A" stroke-width="4" stroke-linecap="round"></path>',
+    tomaten: '<circle cx="24" cy="28" r="14" fill="#D7322B"></circle><path d="M24 15 L20 11 M24 15 L28 11 M24 15 L18 17 M24 15 L30 17" stroke="#4E9A45" stroke-width="3" stroke-linecap="round"></path><ellipse cx="18" cy="23" rx="3.5" ry="2.4" fill="#E86A60"></ellipse>',
+    paprika: '<path d="M12 20 Q12 42 24 42 Q36 42 36 20 Q30 16 24 20 Q18 16 12 20 Z" fill="#E04E2B"></path><path d="M24 20 L24 10" stroke="#4E9A45" stroke-width="4" stroke-linecap="round"></path>',
+    marillen: '<circle cx="24" cy="27" r="14" fill="#F0A04B"></circle><path d="M24 14 Q28 27 24 41" fill="none" stroke="#D8822D" stroke-width="2"></path><ellipse cx="31" cy="12" rx="5" ry="2.6" fill="#4E9A45"></ellipse>',
+    kohlrabi: '<circle cx="24" cy="30" r="13" fill="#C7E0A5"></circle><path d="M18 19 L12 6 M24 17 L24 4 M30 19 L36 6" stroke="#7E9A5E" stroke-width="3" stroke-linecap="round"></path>',
+    oel: '<rect x="17" y="16" width="14" height="28" rx="5" fill="#E9C46A" stroke="#B8962E" stroke-width="1.5"></rect><rect x="21" y="6" width="6" height="11" rx="2" fill="#F1E3A6"></rect><rect x="20" y="3" width="8" height="4" rx="1.5" fill="#2F5233"></rect><rect x="19" y="26" width="10" height="8" rx="2" fill="#FFFFFF"></rect>',
+    zwiebel: '<path d="M24 8 Q40 22 34 36 Q30 44 24 44 Q18 44 14 36 Q8 22 24 8 Z" fill="#D9A86C"></path><path d="M24 10 Q32 24 24 44 M24 10 Q16 24 24 44" fill="none" stroke="#B8844A" stroke-width="1.5"></path><path d="M24 8 L24 3" stroke="#8E6E3C" stroke-width="2" stroke-linecap="round"></path>',
+    knoblauch: '<path d="M24 10 Q38 22 36 34 Q34 42 24 42 Q14 42 12 34 Q10 22 24 10 Z" fill="#F1ECE0" stroke="#CFC6B2" stroke-width="1.5"></path><path d="M24 12 L24 42 M18 18 Q16 30 19 41 M30 18 Q32 30 29 41" fill="none" stroke="#CFC6B2" stroke-width="1.5"></path>',
+    wasser: '<path d="M24 6 Q36 22 36 30 Q36 42 24 42 Q12 42 12 30 Q12 22 24 6 Z" fill="#9CC7DF"></path><ellipse cx="19" cy="30" rx="3" ry="5" fill="#D6EAF2"></ellipse>',
+    kraeuter: '<path d="M24 44 L24 8" stroke="#3F6A2A" stroke-width="2.5"></path><ellipse cx="18" cy="16" rx="6" ry="3.4" fill="#4E9A45" transform="rotate(-30 18 16)"></ellipse><ellipse cx="30" cy="22" rx="6" ry="3.4" fill="#5EAA52" transform="rotate(30 30 22)"></ellipse><ellipse cx="18" cy="28" rx="6" ry="3.4" fill="#4E9A45" transform="rotate(-30 18 28)"></ellipse><ellipse cx="30" cy="34" rx="6" ry="3.4" fill="#5EAA52" transform="rotate(30 30 34)"></ellipse>',
+    zitrone: '<ellipse cx="24" cy="26" rx="17" ry="12" fill="#F7E04B"></ellipse><path d="M7 26 L4 26 M41 26 L44 26" stroke="#E0C42E" stroke-width="3" stroke-linecap="round"></path><ellipse cx="19" cy="22" rx="5" ry="2.5" fill="#FBF0A0"></ellipse>'
+  };
+  function jar(color) {
+    return `<rect x="13" y="14" width="22" height="28" rx="6" fill="#FFFFFF" stroke="#3B2A1E" stroke-width="1.5"></rect><rect x="15" y="24" width="18" height="16" rx="4" fill="${color}" stroke="${color === '#FFFFFF' ? '#CFC6B2' : 'none'}"></rect><rect x="12" y="8" width="24" height="7" rx="2.5" fill="#5D5954"></rect>`;
+  }
+  function iconSvg(id, size) {
+    const inner = ICONS[id] || jar((SPICE[id] || {}).color || '#CCCCCC');
+    return `<svg width="${size}" height="${size}" viewBox="0 0 48 48" aria-hidden="true">${inner}</svg>`;
+  }
+
+  // ----- Rettungskiste, Basis, Gewürze als Bildkacheln -----
+  function tile(id, def, extra) {
     const b = document.createElement('button');
     b.type = 'button';
-    b.className = 'chip' + (extra || '');
+    b.className = 'tile' + (extra || '');
     b.dataset.id = id;
-    const dot = document.createElement('span');
-    dot.className = 'dot';
-    dot.style.background = def.color;
-    b.append(dot, document.createTextNode(def.name));
+    b.innerHTML = iconSvg(id, 48);
+    const name = document.createElement('span');
+    name.className = 'tile-name';
+    name.textContent = def.name;
+    b.append(name);
+    b.addEventListener('click', () => addToPot(id, b));
     return b;
   }
   function renderCrate() {
@@ -441,36 +485,126 @@
       box.append(p);
     }
     ids.forEach((id) => {
-      const b = chip(id, ING[id]);
+      const b = tile(id, ING[id]);
       const c = document.createElement('span'); c.className = 'count'; c.textContent = '×' + S.crate[id];
       b.append(c);
       b.setAttribute('aria-label', ING[id].name + ', noch ' + S.crate[id]);
-      b.addEventListener('click', () => addToPot(id));
       box.append(b);
     });
     syncButtons();
   }
   function renderStatic() {
     const base = $('base'); base.innerHTML = '';
-    Object.keys(BASE).forEach((id) => { const b = chip(id, BASE[id]); b.addEventListener('click', () => addToPot(id)); base.append(b); });
+    Object.keys(BASE).forEach((id) => base.append(tile(id, BASE[id])));
     const sp = $('spices'); sp.innerHTML = '';
-    Object.keys(SPICE).forEach((id) => { const b = chip(id, SPICE[id], ' spice'); b.addEventListener('click', () => addToPot(id)); sp.append(b); });
+    Object.keys(SPICE).forEach((id) => sp.append(tile(id, SPICE[id], ' spice')));
     const si = seasonInfo();
     $('season').textContent = 'Heute, ' + si.day + '. ' + MONTHS[si.month] + ': ' + si.word + '!';
   }
-  function renderPot() {
+  function renderPotList() {
     const list = $('potlist');
     list.innerHTML = '';
     if (!S.pot.length) {
       const li = document.createElement('li'); li.className = 'empty'; li.textContent = 'Noch leer. Womit fängst du an?'; list.append(li);
     } else {
-      S.pot.forEach((id) => { const li = document.createElement('li'); li.textContent = NAME(id); list.append(li); });
+      S.pot.forEach((id, i) => { const li = document.createElement('li'); li.textContent = (i + 1) + '. ' + NAME(id); list.append(li); });
     }
     syncButtons();
   }
+
+  // ----- Was im Topf zu sehen ist -----
+  function colorOf(id) { return (ING[id] || BASE[id] || SPICE[id]).color; }
+  function mix(colors) {
+    if (!colors.length) return '#C9A26B';
+    let r = 0, g = 0, b = 0;
+    colors.forEach((c) => { r += parseInt(c.slice(1, 3), 16); g += parseInt(c.slice(3, 5), 16); b += parseInt(c.slice(5, 7), 16); });
+    const n = colors.length;
+    const h = (v) => Math.round(v / n).toString(16).padStart(2, '0');
+    return '#' + h(r) + h(g) + h(b);
+  }
+  function soupColor(pot) {
+    const cols = [];
+    pot.forEach((id) => {
+      if (ING[id]) cols.push(ING[id].color, ING[id].color);
+      if (['paprikapulver', 'curry', 'zimt'].includes(id)) cols.push(SPICE[id].color, SPICE[id].color);
+      if (id === 'zwiebel') cols.push('#C9A26B');
+    });
+    if (pot.includes('wasser')) cols.push('#C9B48A');
+    return mix(cols.length ? cols : ['#C9A26B']);
+  }
+  function seeded(i) { const x = Math.sin(i * 9301 + 49297) * 233280; return x - Math.floor(x); }
+  function renderPotVisual() {
+    const pieces = $('ui-pieces');
+    pieces.innerHTML = '';
+    const pot = S.pot;
+    const liquid = $('ui-liquid');
+    const hasWater = pot.includes('wasser');
+    liquid.setAttribute('fill', hasWater ? soupColor(pot) : '#5A4030');
+    liquid.setAttribute('opacity', pot.length ? (hasWater ? '1' : '.55') : '0');
+    $('ui-shine').setAttribute('opacity', pot.includes('oel') ? '.7' : '0');
+    let html = '';
+    pot.forEach((id, i) => {
+      if (id === 'wasser' || id === 'oel') return;
+      const isSpice = !!SPICE[id] && !['kraeuter', 'zitrone'].includes(id);
+      const count = isSpice ? 7 : ING[id] ? 4 : 3;
+      for (let k = 0; k < count; k++) {
+        const s1 = seeded(i * 13 + k), s2 = seeded(i * 29 + k * 7 + 3), s3 = seeded(i * 7 + k * 31 + 11);
+        const x = 82 + s1 * 156;
+        const y = 112 + s2 * 22;
+        const delay = (-s3 * 3).toFixed(2);
+        if (isSpice) html += `<circle class="float" style="animation-delay:${delay}s" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="1.8" fill="${colorOf(id)}" opacity=".9"></circle>`;
+        else if (id === 'kraeuter') html += `<ellipse class="float" style="animation-delay:${delay}s" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="4" ry="2" fill="#4E9A45"></ellipse>`;
+        else if (id === 'zitrone') html += `<circle class="float" style="animation-delay:${delay}s" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="#F7E04B"></circle>`;
+        else {
+          const r = ING[id] ? 5 + s3 * 4 : 3.5;
+          html += `<rect class="float" style="animation-delay:${delay}s" x="${(x - r).toFixed(1)}" y="${(y - r * 0.6).toFixed(1)}" width="${(r * 2).toFixed(1)}" height="${(r * 1.2).toFixed(1)}" rx="${(r * 0.5).toFixed(1)}" fill="${colorOf(id)}" stroke="rgba(0,0,0,.18)" stroke-width="1"></rect>`;
+        }
+      }
+    });
+    pieces.innerHTML = html;
+  }
+  function splash(id) {
+    const g = $('ui-splash');
+    const col = colorOf(id);
+    let html = '';
+    for (let k = 0; k < 7; k++) {
+      const ang = -Math.PI * (0.15 + 0.7 * (k / 6));
+      const dx = Math.cos(ang) * rand(30, 60), dy = Math.sin(ang) * rand(25, 50);
+      html += `<circle class="drop" cx="160" cy="118" r="${rand(2.5, 5).toFixed(1)}" fill="${id === 'wasser' ? '#9CC7DF' : col}" style="--dx:${dx.toFixed(0)}px;--dy:${dy.toFixed(0)}px"></circle>`;
+    }
+    g.innerHTML = html;
+    setTimeout(() => { g.innerHTML = ''; }, 700);
+  }
+
+  // ----- Zutat fliegt in den Topf -----
+  function potMouthScreen() {
+    const svgEl = $('potsvg');
+    const pt = svgEl.createSVGPoint(); pt.x = 160; pt.y = 118;
+    return pt.matrixTransform(svgEl.getScreenCTM());
+  }
+  function fly(fromEl, html, toX, toY, size, done, opts) {
+    if (reduceMotion || !fromEl) { done(); return; }
+    const r = fromEl.getBoundingClientRect();
+    const el = document.createElement('div');
+    el.className = 'flying';
+    el.style.left = (r.left + r.width / 2 - size / 2) + 'px';
+    el.style.top = (r.top + r.height / 2 - size / 2) + 'px';
+    el.style.width = el.style.height = size + 'px';
+    el.innerHTML = html;
+    $('flyer').appendChild(el);
+    const dx = toX - (r.left + r.width / 2), dy = toY - (r.top + r.height / 2);
+    const lift = (opts && opts.lift) || Math.min(90, 30 + Math.abs(dx) * 0.1);
+    const anim = el.animate([
+      { transform: 'translate(0,0) scale(1) rotate(0deg)' },
+      { transform: `translate(${dx * 0.5}px, ${dy * 0.5 - lift}px) scale(${(opts && opts.midScale) || 1.1}) rotate(${(opts && opts.spin) || 200}deg)`, offset: 0.5 },
+      { transform: `translate(${dx}px, ${dy}px) scale(${(opts && opts.endScale) || 0.45}) rotate(${((opts && opts.spin) || 200) * 2}deg)` }
+    ], { duration: (opts && opts.ms) || 620, easing: 'cubic-bezier(.45,.05,.55,.95)' });
+    anim.onfinish = () => { el.remove(); done(); };
+  }
+
   function syncButtons() {
     const playing = S.phase === 'play' && !S.busy && !S.paused;
-    document.querySelectorAll('.chip').forEach((b) => { b.disabled = !playing || S.pot.length >= 12; });
+    document.querySelectorAll('.tile').forEach((b) => { b.disabled = !playing || S.pot.length >= 12; });
     $('cook').disabled = !playing || !S.pot.length;
     $('undo').disabled = !playing || !S.pot.length;
     $('clear').disabled = !playing || !S.pot.length;
@@ -478,26 +612,33 @@
     $('pause').disabled = S.phase !== 'play';
     $('pause').textContent = S.paused ? 'Weiter' : 'Pause';
   }
-  function addToPot(id) {
+  function addToPot(id, fromEl) {
     if (S.phase !== 'play' || S.busy || S.pot.length >= 12) return;
     if (ING[id]) {
       if (!S.crate[id]) return;
       S.crate[id] -= 1;
       if (S.crate[id] <= 0) delete S.crate[id];
-      renderCrate();
     }
     S.pot.push(id);
-    renderPot();
+    const target = potMouthScreen();
+    const icon = fromEl ? fromEl.querySelector('svg') : null;
+    if (ING[id]) renderCrate();
+    renderPotList();
+    fly(icon || fromEl, iconSvg(id, 48), target.x, target.y, 48, () => {
+      splash(id);
+      renderPotVisual();
+      $('potsvg').classList.remove('plop'); void $('potsvg').getBBox(); $('potsvg').classList.add('plop');
+    });
   }
   function undo() {
     const id = S.pot.pop();
     if (id && ING[id]) { S.crate[id] = (S.crate[id] || 0) + 1; renderCrate(); }
-    renderPot();
+    renderPotList(); renderPotVisual();
   }
   function clearPot() {
     S.pot.forEach((id) => { if (ING[id]) S.crate[id] = (S.crate[id] || 0) + 1; });
     S.pot = [];
-    renderCrate(); renderPot();
+    renderCrate(); renderPotList(); renderPotVisual();
   }
   function refill() {
     if (S.refilling > 0) return;
@@ -506,16 +647,67 @@
     syncButtons();
   }
 
-  // ----- Kochen und servieren -----
-  function cook() {
+  // ----- Kochen, anrichten, übergeben -----
+  const CAPTAIN_JOKES = [
+    ['Ups. Des war a Probelauf. Ehrlich.', 'I hab des nur kocht, damit ihr seht, wie’s ned geht.', 'Des kriegt der Kompost. Der freut si wenigstens.'],
+    ['Na ja, des is ... experimentell.', 'Probier’s, is gesund. Glaub i.', 'Kunst kommt von Können. Des kommt vom Kochen.'],
+    ['Passt scho! Nächstes Mal mit no mehr Gefühl.', 'Ned perfekt, aber mit Herz gekocht.', 'A guade Hausmannskost, ganz ohne Haus.'],
+    ['Des is ka Essen, des is a Liebeserklärung!', 'Gerettet und veredelt. So schaut’s aus!', 'Wenn des ned schmeckt, ess i mei Kapitänsmütze.']
+  ];
+  const wait = (ms) => new Promise((res) => setTimeout(res, reduceMotion ? Math.min(ms, 120) : ms));
+
+  async function cook() {
     if (S.phase !== 'play' || S.busy || !S.pot.length) return;
     S.busy = true;
     syncButtons();
-    const result = judge(S.pot.slice());
-    const pot = $('pot');
-    pot.classList.remove('bubble'); void pot.getBBox(); pot.classList.add('bubble');
+    const potCopy = S.pot.slice();
+    const result = judge(potCopy);
+    const color = potCopy.includes('wasser') ? soupColor(potCopy) : mix(potCopy.filter((id) => ING[id]).map((id) => ING[id].color).concat(['#C9A26B']));
+
+    // 1. Es brodelt
+    const potsvg = $('potsvg');
+    potsvg.classList.add('cooking');
+    let bub = '';
+    for (let k = 0; k < 10; k++) bub += `<circle class="bub" style="animation-delay:${(k * 0.17).toFixed(2)}s" cx="${(90 + seeded(k + 5) * 140).toFixed(0)}" cy="${(116 + seeded(k + 9) * 16).toFixed(0)}" r="${(3 + seeded(k + 2) * 4).toFixed(1)}" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="1.5"></circle>`;
+    $('ui-bubbles').innerHTML = bub;
     $('captain').classList.remove('stir'); void $('captain').getBBox(); $('captain').classList.add('stir');
-      setTimeout(() => serve(result), reduceMotion ? 200 : 2000);
+    const sPot = $('pot'); sPot.classList.remove('bubble'); void sPot.getBBox(); sPot.classList.add('bubble');
+    await wait(1700);
+
+    // 2. Mit dem Schöpfer auf den Teller
+    potsvg.classList.remove('cooking');
+    $('ui-bubbles').innerHTML = '';
+    const ladle = $('ui-ladle');
+    $('ui-ladlefood').setAttribute('fill', color);
+    ladle.style.transition = 'none';
+    ladle.style.transform = 'translate(160px, 128px)';
+    ladle.setAttribute('opacity', '1');
+    await wait(260);
+    ladle.style.transition = 'transform .7s cubic-bezier(.45,.05,.55,.95)';
+    ladle.style.transform = 'translate(335px, 224px)';
+    await wait(750);
+    $('ui-food').querySelector('ellipse').setAttribute('fill', color);
+    $('ui-food').setAttribute('opacity', '1');
+    ladle.setAttribute('opacity', '0');
+    ladle.style.transform = '';
+    S.pot = [];
+    renderPotList();
+    renderPotVisual();
+    await wait(350);
+
+    // 3. Der Teller fliegt hinauf zur Radküche
+    const plateEl = $('ui-plate');
+    const sceneSvg = $('scene');
+    const pt = sceneSvg.createSVGPoint(); pt.x = 360; pt.y = 398;
+    const target = pt.matrixTransform(sceneSvg.getScreenCTM());
+    const plateHtml = `<svg width="90" height="40" viewBox="0 0 90 40"><ellipse cx="45" cy="24" rx="42" ry="11" fill="#FFFFFF" stroke="#D8CDB8" stroke-width="2"></ellipse><ellipse cx="45" cy="20" rx="24" ry="7" fill="${color}"></ellipse></svg>`;
+    $('ui-food').setAttribute('opacity', '0');
+    const stageVisible = (() => { const r = sceneSvg.getBoundingClientRect(); return r.bottom > 0 && r.top < window.innerHeight; })();
+    await new Promise((res) => {
+      if (!stageVisible || result.spoons === 0) { res(); return; }
+      fly(plateEl, plateHtml, target.x, target.y, 90, res, { ms: 800, spin: 0, midScale: 1.15, endScale: 0.5, lift: 120 });
+    });
+    serve(result, color);
   }
 
   function spoonsSvg(n) {
@@ -527,13 +719,28 @@
     return s;
   }
 
-  function serve(r) {
+  async function handOver(n, color) {
+    const hp = $('handplate');
+    $('handfood').setAttribute('fill', color);
+    hp.style.transition = 'none';
+    hp.style.transform = 'translate(362px, 398px)';
+    hp.setAttribute('opacity', '1');
+    await wait(80);
+    hp.style.transition = 'transform .6s ease-in-out';
+    hp.style.transform = `translate(${(n.x - 22).toFixed(0)}px, ${QY - 44}px)`;
+    await wait(620);
+    hp.setAttribute('opacity', '0');
+    const bowl = n.el.querySelector('.bowl');
+    bowl.querySelector('path').setAttribute('fill', color);
+    bowl.setAttribute('opacity', '1');
+  }
+
+  async function serve(r, color) {
     S.dishes += 1;
     const seeds = [0, 1, 3, 5][r.spoons];
     const portions = [0, 1, 2, 4][r.spoons];
     const feeds = Math.min(portions, S.queue.length);
-    const kept = Math.min(6 - S.warm, portions - feeds);
-    S.warm += Math.max(0, kept);
+    const kept = Math.max(0, Math.min(6 - S.warm, portions - feeds));
     const points = [0, 20, 50, 100][r.spoons] + (r.dish ? 30 : 0);
     S.seeds += seeds;
     addScore(points);
@@ -549,28 +756,36 @@
     v.append(ul);
     const rw = document.createElement('p'); rw.className = 'v-reward';
     rw.textContent = r.spoons
-      ? `${portions} ${portions === 1 ? 'Portion' : 'Portionen'}` + (feeds ? `, ${feeds} sofort ausgegeben` : '') + (kept > 0 ? `, ${kept} bleiben warm` : '') + ` · +${seeds} Samen · +${points} Punkte`
+      ? `${portions} ${portions === 1 ? 'Portion' : 'Portionen'}` + (feeds ? `, ${feeds} gleich ausgegeben` : '') + (kept > 0 ? `, ${kept} bleiben warm` : '') + ` · +${seeds} Samen · +${points} Punkte`
       : 'Keine Samen diesmal. Probier eine andere Reihenfolge!';
     v.append(rw);
 
-    toast(r.head + (r.dish ? ' ' + r.dish + '!' : ''), seeds ? `+${seeds} Samen. Klick auf die Wiese oder ein Haus, um zu pflanzen.` : 'Lies den Tipp der Jury und versuch es nochmal.');
+    // Der Captain macht einen Witz
+    say(342, 330, pick(CAPTAIN_JOKES[r.spoons]), 3800);
 
-    // Nachbarn bekommen ihr Essen
-    if (feeds) feedFront(feeds, r.spoons);
-    else if (S.queue.length && r.spoons === 0) maybeSay(S.queue[0], 'r0', true);
-    S.pot = [];
-    renderPot();
+    if (feeds) {
+      const front = S.queue.slice(0, feeds);
+      for (let i = 0; i < front.length; i++) {
+        await handOver(front[i], color);
+        if (i === 0) setTimeout(() => { if (front[0].el.isConnected) say(front[0].x, QY - 108, pick(LINES[front[0].humor]['r' + r.spoons]), 4000); }, 900);
+      }
+      feedFront(feeds, r.spoons, true);
+    } else if (S.queue.length && r.spoons === 0) {
+      setTimeout(() => maybeSay(S.queue[0], 'r0', true), 1200);
+    }
+    S.warm += kept;
+    toast(r.head + (r.dish ? ' ' + r.dish + '!' : ''), seeds ? `+${seeds} Samen. Klick auf die Wiese oder ein Haus, um zu pflanzen.` : 'Lies den Tipp der Jury und versuch es nochmal.');
     S.busy = false;
     syncButtons();
     updateHud();
-    if (!Object.keys(S.crate).length && S.refilling <= 0) setTimeout(() => toast('Die Rettungskiste ist leer.', 'Drück auf „Neue Rettungstour“, um Nachschub zu holen.'), 1800);
+    if (!Object.keys(S.crate).length && S.refilling <= 0) setTimeout(() => toast('Die Rettungskiste ist leer.', 'Drück auf „Neue Rettungstour“, um Nachschub zu holen.'), 2600);
   }
 
-  function feedFront(count, spoons) {
+  function feedFront(count, spoons, handed) {
     const fed = S.queue.splice(0, count);
     fed.forEach((n, i) => {
       n.el.querySelector('.bowl').setAttribute('opacity', '1');
-      if (i === 0 && Math.random() < 0.6) setTimeout(() => say(n.x, QY - 108, pick(LINES[n.humor]['r' + spoons]), 4000), 200);
+      if (!handed && i === 0 && Math.random() < 0.6) setTimeout(() => say(n.x, QY - 108, pick(LINES[n.humor]['r' + spoons]), 4000), 200);
       n.leaveT = 0.4 + i * 0.35;
       n.ty = rand(500, 540);
       n.tx = rand(QX0 + 40, 1180);
@@ -740,9 +955,17 @@
     }
 
     // Warmgehaltene Portionen an die Ersten in der Schlange
-    if (running && S.warm > 0 && S.queue.length && Math.abs(S.queue[0].tx - S.queue[0].x) < 2) {
+    if (running && S.warm > 0 && !S.handing && S.queue.length && Math.abs(S.queue[0].tx - S.queue[0].x) < 2) {
       S.warmT = (S.warmT || 0) + dt;
-      if (S.warmT > 0.8) { S.warmT = 0; S.warm -= 1; feedFront(1, 2); }
+      if (S.warmT > 0.8) {
+        S.warmT = 0; S.warm -= 1; S.handing = true;
+        const n = S.queue[0];
+        handOver(n, '#C9A26B').then(() => {
+          if (S.queue[0] === n) feedFront(1, 2, false);
+          S.handing = false;
+          updateHud();
+        });
+      }
     }
 
     // Bewegung der Nachbarn
@@ -897,13 +1120,16 @@
     $('steam').setAttribute('opacity', '0');
     $('verdict').innerHTML = '<p class="v-empty">Koch dein erstes Gericht, dann sag ich dir ehrlich, wie es geworden ist.</p>';
     $('refill-note').textContent = '';
+    $('ui-food').setAttribute('opacity', '0');
+    $('handplate').setAttribute('opacity', '0');
   }
 
   function startGame() {
     resetScene();
     S = freshState();
     renderCrate();
-    renderPot();
+    renderPotList();
+    renderPotVisual();
     updateHud();
     intro();
   }
@@ -928,10 +1154,10 @@
   S = freshState();
   renderStatic();
   renderCrate();
-  renderPot();
+  renderPotList();
   updateHud();
   requestAnimationFrame(frame);
 
   // Für Tests
-  window.__radkueche = { judge, newCrate, state: () => S };
+  window.__radkueche = { judge, newCrate, state: () => S, setCrate: (c) => { S.crate = c; renderCrate(); } };
 })();

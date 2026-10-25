@@ -38,10 +38,12 @@
 <div class="hud-item"><span class="hud-label">Punkte</span><span class="hud-num" id="h-score">0</span></div>
 </div>
 
+<div class="game-grid">
+<div class="left-col">
 <div class="stage" id="stage">
-<svg id="scene" viewBox="0 0 1200 560" width="100%" role="img" aria-label="Eine Straße mit grauen Häusern. Captain Dave kommt mit der Radküche, Nachbarn stellen sich an, und mit jedem guten Gericht wachsen Blumen.">
+<svg id="scene" viewBox="0 100 1200 460" width="100%" role="img" aria-label="Eine Straße mit grauen Häusern. Captain Dave kommt mit der Radküche, Nachbarn stellen sich an, und mit jedem guten Gericht wachsen Blumen.">
 <rect x="0" y="0" width="1200" height="560" fill="#D6EAF2"></rect>
-<circle cx="1050" cy="90" r="50" fill="#F2B530"></circle>
+<circle cx="1060" cy="150" r="38" fill="#F2B530"></circle>
 <g id="houses">
 <rect x="30" y="180" width="170" height="230" fill="#B8B4AD"></rect>
 <path d="M18 182 L115 120 L212 182 Z" fill="#8C8781"></path>
@@ -105,6 +107,7 @@
 <path d="M342 375 Q347 378 352 374" fill="none" stroke="#3B2A1E" stroke-width="1.6" stroke-linecap="round"></path>
 <g transform="translate(342 370) scale(-0.92 0.92) translate(-298 -210)"><path d="M275 197 L279 184 Q298 175 318 184 L322 197 Z" fill="#FFFFFF" stroke="#3B2A1E" stroke-width="2" stroke-linejoin="round"></path><rect x="278" y="193" width="42" height="8" fill="#1F2A44"></rect><path d="M300 199 L268 201 Q274 210 300 206 Z" fill="#1F2A44"></path><circle cx="298" cy="188" r="3.6" fill="#F2B530"></circle><path d="M295 188 L301 188 M298 185 L298 191" stroke="#1F2A44" stroke-width="1.2"></path></g>
 </g>
+<g id="handplate" opacity="0" style="transform: translate(362px, 398px)"><ellipse cx="0" cy="0" rx="17" ry="5" fill="#FFFFFF" stroke="#D8CDB8" stroke-width="1.5"></ellipse><ellipse id="handfood" cx="0" cy="-3" rx="10" ry="4" fill="#C9A26B"></ellipse></g>
 <g id="bees" pointer-events="none"></g>
 </svg>
 
@@ -132,37 +135,51 @@
 </div>
 </div>
 
-<div class="kitchen-ui">
-<section class="panel cook" aria-labelledby="cook-h">
-<p class="season" id="season">Heute ist Kürbiszeit!</p>
-<h2 id="cook-h" class="panel-h">Deine Küche</h2>
-
-<p class="group-h">Gerettet in der Rettungskiste</p>
-<div id="crate" class="chips" role="group" aria-label="Gerettete Zutaten"></div>
-<div class="refill-row">
-<button type="button" id="refill" class="btn-line small">Neue Rettungstour</button>
-<span id="refill-note" class="note"></span>
+<section class="potcard" aria-labelledby="pot-h">
+<h2 id="pot-h" class="visually-hidden">Der Topf</h2>
+<div class="potstage" id="potstage">
+<svg id="potsvg" viewBox="0 0 400 290" width="100%" role="img" aria-label="Der Kochtopf auf dem Herd, daneben ein Teller">
+<defs><clipPath id="potmouth"><ellipse cx="160" cy="122" rx="88" ry="16"></ellipse></clipPath></defs>
+<g id="ui-steam" class="ui-steam"><path class="rise" d="M120 96 Q112 80 120 64 Q128 48 120 32" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"></path><path class="rise r2" d="M160 96 Q152 78 160 60 Q168 42 160 24" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"></path><path class="rise r3" d="M200 96 Q192 80 200 64 Q208 48 200 32" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"></path></g>
+<rect x="66" y="244" width="188" height="26" rx="8" fill="#5D5954"></rect>
+<rect x="80" y="270" width="12" height="16" fill="#5D5954"></rect><rect x="228" y="270" width="12" height="16" fill="#5D5954"></rect>
+<g id="ui-flame"><path class="flick" d="M104 246 Q110 226 116 246 Z" fill="#E8792F"></path><path class="flick f2" d="M128 246 Q136 220 144 246 Z" fill="#F2B530"></path><path class="flick" d="M156 246 Q164 224 172 246 Z" fill="#E8792F"></path><path class="flick f2" d="M182 246 Q190 222 198 246 Z" fill="#F2B530"></path><path class="flick" d="M206 246 Q212 228 218 246 Z" fill="#E8792F"></path></g>
+<g id="ui-pot">
+<path d="M48 150 L28 150 Q20 150 20 158 L20 160 Q20 166 28 166 L60 166 Z" fill="#3B2A1E"></path>
+<path d="M272 150 L292 150 Q300 150 300 158 L300 160 Q300 166 292 166 L260 166 Z" fill="#3B2A1E"></path>
+<path d="M60 122 L260 122 L252 232 Q250 242 238 242 L82 242 Q70 242 68 232 Z" fill="#3B2A1E"></path>
+<path d="M76 140 L84 228" stroke="#5D5954" stroke-width="5" stroke-linecap="round"></path>
+<ellipse cx="160" cy="122" rx="100" ry="22" fill="#5D5954"></ellipse>
+<ellipse cx="160" cy="122" rx="88" ry="16" fill="#241A14"></ellipse>
+<g clip-path="url(#potmouth)">
+<ellipse id="ui-liquid" cx="160" cy="124" rx="90" ry="17" fill="#C9A26B" opacity="0"></ellipse>
+<g id="ui-pieces"></g>
+<g id="ui-bubbles"></g>
+</g>
+<ellipse id="ui-shine" cx="130" cy="118" rx="26" ry="4" fill="#FFF6D6" opacity="0"></ellipse>
+</g>
+<g id="ui-splash"></g>
+<g id="ui-ladle" opacity="0"><path d="M0 0 L-46 -70" stroke="#6B4A32" stroke-width="7" stroke-linecap="round"></path><path d="M-14 -4 Q0 16 14 -4 Z" fill="#6B4A32"></path><ellipse id="ui-ladlefood" cx="0" cy="-2" rx="11" ry="4" fill="#C9A26B"></ellipse></g>
+<g id="ui-plate"><ellipse cx="335" cy="236" rx="54" ry="14" fill="#E9DCC4"></ellipse><ellipse cx="335" cy="232" rx="54" ry="14" fill="#FFFFFF" stroke="#D8CDB8" stroke-width="2"></ellipse><ellipse cx="335" cy="232" rx="36" ry="8" fill="none" stroke="#EFE6D4" stroke-width="2"></ellipse><g id="ui-food" opacity="0"><ellipse cx="335" cy="228" rx="30" ry="8" fill="#C9A26B"></ellipse><circle cx="324" cy="226" r="4" fill="#E8792F"></circle><circle cx="340" cy="224" r="3.5" fill="#7FA36F"></circle><circle cx="350" cy="228" r="3" fill="#F1ECE0"></circle></g></g>
+</svg>
 </div>
-
-<p class="group-h">Immer dabei</p>
-<div id="base" class="chips" role="group" aria-label="Basis"></div>
-
-<p class="group-h">Gewürzregal</p>
-<div id="spices" class="chips" role="group" aria-label="Gewürze"></div>
-
-<p class="group-h">Im Topf <span class="note">(in dieser Reihenfolge)</span></p>
+<div class="potctl">
+<p class="group-h">Reihenfolge im Topf</p>
 <ol id="potlist" class="potlist"><li class="empty">Noch leer. Womit fängst du an?</li></ol>
 <div class="pot-actions">
 <button type="button" id="cook" class="btn-solid">Abschmecken und servieren</button>
 <button type="button" id="undo" class="btn-line">Zurück</button>
 <button type="button" id="clear" class="btn-line">Ausleeren</button>
 </div>
-</section>
 
-<section class="panel jury" aria-labelledby="jury-h" aria-live="polite">
-<h2 id="jury-h" class="panel-h">Die Jury</h2>
+</div>
+</section>
+<section class="panel jurycard">
+<div class="jury" aria-live="polite">
+<h3 class="jury-h">Die Jury</h3>
 <div id="verdict" class="verdict">
 <p class="v-empty">Koch dein erstes Gericht, dann sag ich dir ehrlich, wie es geworden ist.</p>
+</div>
 </div>
 <div class="pause-row">
 <button type="button" id="pause" class="btn-line small">Pause</button>
@@ -170,6 +187,29 @@
 </div>
 </section>
 </div>
+<div class="right-col">
+<section class="panel pantry" aria-labelledby="pantry-h">
+<p class="season" id="season">Heute ist Kürbiszeit!</p>
+<h2 id="pantry-h" class="panel-h">Deine Zutaten</h2>
+<p class="hint">Tipp eine Zutat an, und sie fliegt in den Topf. Die Reihenfolge zählt!</p>
+
+<p class="group-h">Gerettet in der Rettungskiste</p>
+<div id="crate" class="tiles" role="group" aria-label="Gerettete Zutaten"></div>
+<div class="refill-row">
+<button type="button" id="refill" class="btn-line small">Neue Rettungstour</button>
+<span id="refill-note" class="note"></span>
+</div>
+
+<p class="group-h">Immer dabei</p>
+<div id="base" class="tiles" role="group" aria-label="Basis"></div>
+
+<p class="group-h">Gewürzregal</p>
+<div id="spices" class="tiles spices" role="group" aria-label="Gewürze"></div>
+</section>
+
+</div>
+</div>
+<div id="flyer" class="flyer-layer" aria-hidden="true"></div>
 </main>
 
 <footer class="foot">
