@@ -343,6 +343,114 @@
   // ---------------------------------------------------------------
   // Spielzustand
   // ---------------------------------------------------------------
+  // ---------------------------------------------------------------
+  // Musik: ein eigener kleiner Heurigen-Walzer, live im Browser erzeugt
+  // ---------------------------------------------------------------
+  const Music = (function () {
+    const NOTE = (n) => {
+      const m = /^([A-G])(#?)(\d)$/.exec(n);
+      const base = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[m[1]] + (m[2] ? 1 : 0);
+      const midi = 12 * (Number(m[3]) + 1) + base;
+      return 440 * Math.pow(2, (midi - 69) / 12);
+    };
+    // 16 Takte im Dreivierteltakt: [Ton, Schläge]
+    const MELODY = [
+      [['G4', 1], ['C5', 1], ['E5', 1]], [['G5', 2], ['E5', 1]], [['F5', 1], ['D5', 1], ['B4', 1]], [['G4', 2], [null, 1]],
+      [['B4', 1], ['D5', 1], ['F5', 1]], [['A5', 1], ['G5', 1], ['F5', 1]], [['E5', 1], ['G5', 1], ['C6', 1]], [['G5', 2], [null, 1]],
+      [['A5', 1], ['G5', 1], ['F5', 1]], [['C5', 1], ['F5', 1], ['A5', 1]], [['G5', 1.5], ['E5', 0.5], ['C5', 1]], [['E5', 2], ['G4', 1]],
+      [['D5', 1], ['E5', 0.5], ['F5', 0.5], ['D5', 1]], [['B4', 1], ['D5', 1], ['G5', 1]], [['E5', 1], ['G5', 0.5], ['E5', 0.5], ['D5', 1]], [['C5', 2], [null, 1]]
+    ];
+    const CHORDS = ['C', 'C', 'G', 'G', 'G', 'G', 'C', 'C', 'F', 'F', 'C', 'C', 'G', 'G', 'C', 'C'];
+    const BASS = { C: ['C3', 'G2'], G: ['G2', 'D3'], F: ['F2', 'C3'] };
+    const TRIAD = { C: ['E4', 'G4', 'C5'], G: ['D4', 'G4', 'B4'], F: ['F4', 'A4', 'C5'] };
+
+    let ctx = null, master = null, timer = null, nextTime = 0, bar = 0, on = false, tempo = 126;
+    try { on = localStorage.getItem('rk-sound') !== 'off'; } catch (e) { on = true; }
+
+    function ensure() {
+      if (ctx) return true;
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      ctx = new AC();
+      master = ctx.createGain();
+      master.gain.value = 0.11;
+      const lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass'; lp.frequency.value = 2600;
+      master.connect(lp); lp.connect(ctx.destination);
+      return true;
+    }
+    function tone(freq, t, dur, type, vol, detune) {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = type; o.frequency.value = freq;
+      if (detune) o.detune.value = detune;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(vol, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(master);
+      o.start(t); o.stop(t + dur + 0.05);
+    }
+    function accordion(freq, t, dur) {
+      tone(freq, t, dur, 'sawtooth', 0.22, -6);
+      tone(freq, t, dur, 'square', 0.12, 6);
+    }
+    function scheduleBar(t) {
+      const beat = 60 / tempo;
+      const ch = CHORDS[bar % 16];
+      // Bass auf eins, Nachschlag auf zwei und drei
+      tone(NOTE(BASS[ch][bar % 2]), t, beat * 0.8, 'triangle', 0.5);
+      [1, 2].forEach((b) => TRIAD[ch].forEach((n) => tone(NOTE(n), t + b * beat, beat * 0.35, 'square', 0.06)));
+      let pos = 0;
+      MELODY[bar % 16].forEach(([n, beats]) => {
+        if (n) accordion(NOTE(n), t + pos * beat, beats * beat * 0.92);
+        pos += beats;
+      });
+      bar += 1;
+      return t + 3 * beat;
+    }
+    function loop() {
+      while (nextTime < ctx.currentTime + 0.3) nextTime = scheduleBar(nextTime);
+    }
+    function start() {
+      if (!on || !ensure()) return;
+      if (ctx.state === 'suspended') ctx.resume();
+      if (timer) return;
+      bar = 0;
+      nextTime = ctx.currentTime + 0.1;
+      timer = setInterval(loop, 60);
+    }
+    function stop() {
+      if (timer) { clearInterval(timer); timer = null; }
+    }
+    function sfx(kind) {
+      if (!on || !ensure()) return;
+      if (ctx.state === 'suspended') ctx.resume();
+      const t = ctx.currentTime + 0.01;
+      if (kind === 'plop') {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = 'sine'; o.frequency.setValueAtTime(520, t); o.frequency.exponentialRampToValueAtTime(140, t + 0.14);
+        g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+        o.connect(g); g.connect(master); o.start(t); o.stop(t + 0.2);
+      }
+      if (kind === 'ding') { tone(NOTE('E6'), t, 0.35, 'sine', 0.5); tone(NOTE('G6'), t + 0.1, 0.45, 'sine', 0.4); }
+      if (kind === 'meh') { tone(NOTE('E4'), t, 0.3, 'triangle', 0.5); tone(NOTE('C4'), t + 0.22, 0.45, 'triangle', 0.5); }
+      if (kind === 'win') ['C5', 'E5', 'G5', 'C6', 'E6'].forEach((n, i) => accordion(NOTE(n), t + i * 0.13, 0.5));
+      if (kind === 'lose') ['G4', 'F#4', 'F4', 'E4'].forEach((n, i) => tone(NOTE(n), t + i * 0.32, 0.45, 'triangle', 0.5));
+      if (kind === 'bike') { tone(NOTE('A5'), t, 0.12, 'square', 0.25); tone(NOTE('A5'), t + 0.16, 0.12, 'square', 0.25); }
+    }
+    return {
+      start, stop, sfx,
+      setTempo(v) { tempo = v; },
+      isOn() { return on; },
+      toggle(playing) {
+        on = !on;
+        try { localStorage.setItem('rk-sound', on ? 'on' : 'off'); } catch (e) { /* egal */ }
+        if (on && playing) start(); else stop();
+        return on;
+      }
+    };
+  })();
+
   const GOAL = 20;
   const QUEUE_MAX = 12;
   const QX0 = 410, QGAP = 64, QY = 470;
@@ -621,6 +729,7 @@
     renderPotList();
     fly(icon || fromEl, iconSvg(id, 40), target.x, target.y, 40, () => {
       splash(id);
+      Music.sfx('plop');
       renderPotVisual();
       const p = $('pot'); p.classList.remove('plop'); void p.getBBox(); p.classList.add('plop');
     });
@@ -646,6 +755,7 @@
     S.jakob = 'leaving';
     $('refill-note').textContent = 'Jakob radelt los ...';
     say(220, 420, pick(JAKOB_GO), 3200, 'Jakob');
+    Music.sfx('bike');
     $('jakob').classList.add('rolling');
     $('jakob-load').setAttribute('opacity', '0');
     jakobAt(-360);
@@ -788,6 +898,7 @@
     const points = [0, 20, 50, 100][r.spoons] + (r.dish ? 30 : 0);
     S.seeds += seeds;
     addScore(points);
+    Music.sfx(r.spoons >= 2 ? 'ding' : 'meh');
 
     // Jury ausführlich unten, kurz in der Szene
     const v = $('verdict');
@@ -880,7 +991,7 @@
     $('meadow').setAttribute('opacity', String(Math.min(1, S.flowers / 22)));
     if (S.flowers >= 8) $('tree1').classList.add('grown');
     if (S.flowers >= 18) $('tree2').classList.add('grown');
-    if (S.flowers === 1) toast('Die erste Blume!', 'Blumen locken Hummeln an und machen die Wartenden geduldiger.');
+    if (S.flowers === 1) toast('Die erste Blume!', 'Blumen locken Hummeln an, und ein blühendes Grätzl spricht sich herum.');
     syncBees();
     updateHud();
   }
@@ -972,12 +1083,16 @@
 
     if (running) {
       S.elapsed += dt;
-      // Neue Nachbarn: wird mit der Zeit schneller, Blumen machen geduldiger
+      // Neue Nachbarn: am Anfang gemütlich. Je mehr versorgt sind und je mehr blüht,
+      // desto mehr spricht es sich im Grätzl herum, und desto schneller kommen Leute.
       S.spawnIn -= dt;
       if (S.spawnIn <= 0) {
         spawnNeighbor();
-        const base = Math.max(4.2, 8.5 - S.elapsed * 0.035);
-        S.spawnIn = base + Math.min(2.5, S.flowers * 0.09) + rand(-0.8, 0.8);
+        const buzz = S.served * 0.4 + S.flowers * 0.12 + S.elapsed * 0.01;
+        const gap = Math.max(4.2, 12.5 - buzz);
+        S.spawnIn = gap + rand(-1, 1);
+        if (gap < 10.5 && !S.buzz1) { S.buzz1 = true; toast('Es spricht sich herum im Grätzl!', 'Dein gutes Essen lockt immer mehr Leute an.'); say(60, 340, 'Captain, des spricht si herum! Es kommen immer mehr!', 3600, 'Mira'); }
+        if (gap < 7 && !S.buzz2) { S.buzz2 = true; toast('Jetzt is richtig was los!', 'Das halbe Grätzl steht schon an.'); say(342, 330, 'Volle Kraft voraus, Crew!', 3200, 'Captain Dave'); }
       }
       // Rettungstour mit Jakob
       if (S.refilling > 0) { S.refilling -= dt; jakobTick(); }
@@ -1049,6 +1164,7 @@
     $('m-qfill').style.width = pct + '%';
     $('m-qfill').style.background = pct >= 75 ? '#B8432F' : pct >= 50 ? '#C97B3D' : '#2F5233';
     $('m-qbar').setAttribute('aria-valuenow', String(q));
+    Music.setTempo(120 + q * 3);
   }
   function updateHud() {
     $('m-served').textContent = S.served;
@@ -1090,7 +1206,7 @@
     setTimeout(() => { $('steam').setAttribute('opacity', '1'); say(342, 330, pick(CAPTAIN_LINES), 3200, 'Captain Dave'); }, 5000 * T);
     setTimeout(() => {
       S.phase = 'play';
-      S.spawnIn = 0.2;
+      S.spawnIn = 2.5;
       syncButtons();
       toast('Die Radküche ist offen!', 'Tipp unten Zutaten an, sie fliegen direkt in den Topf. Dann „Abschmecken“.');
     }, 5600 * T);
@@ -1110,6 +1226,7 @@
   }
   function win() {
     if (S.phase !== 'play') return;
+    Music.stop(); Music.sfx('win');
     addScore(300);
     celebrate();
     endScreen('Gewonnen!', 'Das ganze Grätzl ist satt und glücklich.',
@@ -1119,10 +1236,11 @@
   }
   function lose() {
     if (S.phase !== 'play') return;
+    Music.stop(); Music.sfx('lose');
     const n = S.queue[S.queue.length - 1];
     if (n) say(n.x, QY - 108, pick(LINES.grant.r0), 3000, n.name);
     endScreen('Die Schlange reicht bis ans Ende der Straße.', 'Na servas, des war heut a harter Tag.',
-      [`Du hast ${S.served} von ${GOAL} Nachbarn versorgt. Tipp: Je besser das Gericht, desto mehr Leute werden auf einmal satt. Und Blumen machen die Wartenden geduldiger.`,
+      [`Du hast ${S.served} von ${GOAL} Nachbarn versorgt. Tipp: Je besser das Gericht, desto mehr Leute werden auf einmal satt. Und was warm im Topf bleibt, geht an die Nächsten.`,
        `Deine Punkte: ${S.score}. Dein Rekord: ${best}.`,
        'Aber morgen is a neuer Tag. Und gerettet wird immer.'], false);
   }
@@ -1184,9 +1302,18 @@
   // ----- Knöpfe -----
   $('ov-start').addEventListener('click', () => {
     startGame();
+    Music.start();
+    syncSound();
     const play = document.querySelector('.play');
     if (play && play.getBoundingClientRect().top < 0 || (play && play.getBoundingClientRect().top > 120)) play.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
   });
+  function syncSound() {
+    const b = $('sound');
+    b.textContent = Music.isOn() ? 'Musik: an' : 'Musik: aus';
+    b.setAttribute('aria-pressed', Music.isOn() ? 'true' : 'false');
+  }
+  $('sound').addEventListener('click', () => { Music.toggle(S.phase === 'play' && !S.paused); syncSound(); });
+  syncSound();
   const strip = $('strip');
   $('strip-left').addEventListener('click', () => strip.scrollBy({ left: -strip.clientWidth * 0.7, behavior: 'smooth' }));
   $('strip-right').addEventListener('click', () => strip.scrollBy({ left: strip.clientWidth * 0.7, behavior: 'smooth' }));
@@ -1200,6 +1327,7 @@
   $('pause').addEventListener('click', () => {
     if (S.phase !== 'play') return;
     S.paused = !S.paused;
+    if (S.paused) Music.stop(); else Music.start();
     syncButtons();
     toast(S.paused ? 'Pause. Die Schlange wartet.' : 'Weiter geht’s!');
   });
