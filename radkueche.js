@@ -599,6 +599,9 @@
     toast.h = setTimeout(() => t.classList.remove('show'), sub ? 4000 : 2400);
   }
   function readMs(text) { return Math.max(3600, 1800 + String(text).length * 85); }
+  const VB = { x: 0, y: 100, w: 1200, h: 460 };
+  const pctX = (x) => (x - VB.x) / VB.w * 100;
+  const pctY = (y) => (y - VB.y) / VB.h * 100;
   // Immer nur eine Sprechblase: alle reden schön der Reihe nach
   const talkQ = [];
   let talkBusy = false, talkTimer = null;
@@ -627,9 +630,9 @@
     const b = it.b;
     const x = it.xf ? it.xf() : it.x;
     logTalk(it.who, it.text);
-    const left = Math.max(12, Math.min(88, x / 1200 * 100));
+    const left = Math.max(4, Math.min(96, pctX(x)));
     b.style.left = left + '%';
-    b.style.top = ((it.y - 100) / 460 * 100) + '%';
+    b.style.top = pctY(it.y) + '%';
     bubbles.appendChild(b);
     const boxW = bubbles.clientWidth;
     if (boxW) {
@@ -683,7 +686,7 @@
     const g = mk('g', {});
     g.innerHTML = personMarkup(look);
     queueLayer.appendChild(g);
-    const n = { id: S.nextId++, el: g, x: 1260, tx: 0, humor, name: nname, waited: 0, talkedWait: false, wish: nwish, gaveUp: false };
+    const n = { id: S.nextId++, el: g, x: Math.max(1260, VB.x + VB.w + 40), tx: 0, humor, name: nname, waited: 0, talkedWait: false, wish: nwish, gaveUp: false };
     S.queue.push(n);
     renderWish(n);
     if (S.calmUntil > S.elapsed) { g.querySelector('.cup').setAttribute('opacity', '1'); g.querySelector('.zen').setAttribute('opacity', '1'); }
@@ -752,12 +755,14 @@
     b.innerHTML = iconSvg(id, 40);
     const name = document.createElement('span');
     name.className = 'tile-name';
+    b.title = def.name;
     name.textContent = def.name;
     b.append(name);
     b.addEventListener('click', () => addToPot(id, b));
     return b;
   }
   function renderCrate() {
+    requestAnimationFrame(fitScene);
     const box = $('crate');
     box.innerHTML = '';
     const ids = Object.keys(S.crate);
@@ -924,7 +929,7 @@
     Music.sfx('bike');
     $('jakob').classList.add('rolling');
     $('jakob-load').setAttribute('opacity', '0');
-    jakobAt(-360);
+    jakobAt(-1500);
     syncButtons();
   }
   function jakobTick() {
@@ -1279,7 +1284,7 @@
     } catch (e) { /* Runde vorbei oder Nachbar weg */ }
     n.inDebate = false;
     g.classList.add('walking');
-    gertiAt(-420);
+    gertiAt(-1500);
     await wait(2000);
     g.classList.remove('walking');
     S.leoBusy = false;
@@ -1330,7 +1335,7 @@
     await say(560, 350, pick(['So schaut’s aus, wenn ma Herz hat!', 'Und nächstes Mal bringt’s eure Schwiegermütter mit!', 'Pfiat eich, ihr Truthahn-Fans!']), 3000, 'Leolitta', { keep: true }).done;
     $('feastglow').classList.remove('on');
     g.classList.add('walking');
-    gertiAt(-420);
+    gertiAt(-1500);
     await wait(2000);
     g.classList.remove('walking');
     $('turkey').setAttribute('opacity', '0');
@@ -1383,7 +1388,7 @@
     cook();
     setTimeout(() => {
       say(270, 350, pick(GERTI_BYE), 3200, 'Leolitta');
-      setTimeout(() => { $('gerti').classList.add('walking'); gertiAt(-420); setTimeout(() => { $('gerti').classList.remove('walking'); S.leoBusy = false; }, 2000); }, 2600);
+      setTimeout(() => { $('gerti').classList.add('walking'); gertiAt(-1500); setTimeout(() => { $('gerti').classList.remove('walking'); S.leoBusy = false; }, 2000); }, 2600);
     }, 4200);
   }
 
@@ -1601,7 +1606,7 @@
     await wait(1200);
     await walkTo(nf, 705, 1600);
     nf.style.transition = 'none';
-    nf.style.transform = 'translate(-300px, 476px)';
+    nf.style.transform = 'translate(-1500px, 476px)';
     $('nif-rider').setAttribute('opacity', '1');
     S.nifBusy = false;
     syncButtons();
@@ -1613,7 +1618,7 @@
       $('leaves').setAttribute('opacity', '0');
       document.querySelectorAll('#queue .zen').forEach((z) => z.setAttribute('opacity', '0'));
       toast('Der Tee ist ausgetrunken.', 'Die Leute landen wieder im Hier und Jetzt.');
-      if (!S.nifBusy) bikeTo(1450, 3000);
+      if (!S.nifBusy) bikeTo(2800, 3000);
     }
   }
 
@@ -1933,7 +1938,7 @@
       n.el.firstChild.classList.toggle('walk-bob', moving && !reduceMotion);
       if (n.bubble && n.bubble.isConnected) {
         const boxW = bubbles.clientWidth, bw = n.bubble.offsetWidth;
-        n.bubble.style.left = Math.max(bw / 2 + 4, Math.min(boxW - bw / 2 - 4, n.x / 1200 * boxW)) + 'px';
+        n.bubble.style.left = Math.max(bw / 2 + 4, Math.min(boxW - bw / 2 - 4, pctX(n.x) / 100 * boxW)) + 'px';
       }
     });
     S.leaving = S.leaving.filter((n) => {
@@ -2109,7 +2114,7 @@
     $('tree2').classList.remove('grown');
     const k = $('kitchen');
     k.style.transition = 'none';
-    k.style.transform = 'translateX(-480px)';
+    k.style.transform = 'translateX(-1500px)';
     void k.getBBox();
     k.style.transition = '';
     $('rider').style.opacity = '1';
@@ -2121,11 +2126,11 @@
     $('refill-note').textContent = '';
     $('handplate').setAttribute('opacity', '0');
     $('jurypop').hidden = true;
-    const mira = $('mira'); mira.style.transition = 'none'; mira.style.transform = 'translateX(-260px)'; void mira.getBBox(); mira.style.transition = '';
-    const jk = $('jakob'); jk.style.transition = 'none'; jakobAt(-420); void jk.getBBox(); jk.style.transition = '';
+    const mira = $('mira'); mira.style.transition = 'none'; mira.style.transform = 'translateX(-1500px)'; void mira.getBBox(); mira.style.transition = '';
+    const jk = $('jakob'); jk.style.transition = 'none'; jakobAt(-1500); void jk.getBBox(); jk.style.transition = '';
     $('jakob-load').setAttribute('opacity', '0');
-    ['nif'].forEach((id) => { const el = $(id); el.style.transition = 'none'; el.style.transform = 'translate(-300px, 476px)'; });
-    const nb = $('nifbike'); nb.style.transition = 'none'; nb.style.transform = 'translate(1450px, 414px)';
+    ['nif'].forEach((id) => { const el = $(id); el.style.transition = 'none'; el.style.transform = 'translate(-1500px, 476px)'; });
+    const nb = $('nifbike'); nb.style.transition = 'none'; nb.style.transform = 'translate(2800px, 414px)';
     $('nif-rider').setAttribute('opacity', '1');
     $('queue').classList.remove('calm'); $('leaves').setAttribute('opacity', '0');
     $('turkey').setAttribute('opacity', '0');
@@ -2180,16 +2185,23 @@
     const st = $('stage');
     if (!document.body.classList.contains('game-on')) {
       box.style.width = ''; box.style.height = '';
-      st.style.removeProperty('--g'); st.style.removeProperty('--g2');
+      VB.x = 0; VB.y = 100; VB.w = 1200; VB.h = 460;
+      svg.setAttribute('viewBox', '0 100 1200 460');
       return;
     }
     const w = st.clientWidth, hgt = st.clientHeight;
-    const bw = Math.min(w, hgt * 1200 / 460);
-    const bh = bw * 460 / 1200;
-    box.style.width = bw + 'px';
-    box.style.height = bh + 'px';
-    st.style.setProperty('--g', (bh * 150 / 460) + 'px');
-    st.style.setProperty('--g2', (bh * 76 / 460) + 'px');
+    if (!w || !hgt) return;
+    box.style.width = w + 'px';
+    box.style.height = hgt + 'px';
+    const ratio = w / hgt;
+    if (ratio >= 1200 / 460) {
+      // breiter Bildschirm: links und rechts mehr Stadt zeigen
+      VB.h = 460; VB.w = 460 * ratio; VB.x = 600 - VB.w / 2; VB.y = 100;
+    } else {
+      // schmaler Bildschirm: oben mehr Himmel zeigen
+      VB.w = 1200; VB.h = 1200 / ratio; VB.x = 0; VB.y = 560 - VB.h;
+    }
+    svg.setAttribute('viewBox', `${VB.x.toFixed(1)} ${VB.y.toFixed(1)} ${VB.w.toFixed(1)} ${VB.h.toFixed(1)}`);
   }
   function enterGame() {
     document.body.classList.add('game-on');
@@ -2230,12 +2242,7 @@
   }
   $('sound').addEventListener('click', () => { Music.toggle(S.phase === 'play' && !S.paused); syncSound(); });
   syncSound();
-  const strip = $('strip');
-  $('strip-left').addEventListener('click', () => strip.scrollBy({ left: -strip.clientWidth * 0.7, behavior: 'smooth' }));
-  $('strip-right').addEventListener('click', () => strip.scrollBy({ left: strip.clientWidth * 0.7, behavior: 'smooth' }));
-  strip.addEventListener('wheel', (e) => {
-    if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && strip.scrollWidth > strip.clientWidth) { strip.scrollLeft += e.deltaY; e.preventDefault(); }
-  }, { passive: false });
+  if (window.ResizeObserver) new ResizeObserver(() => fitScene()).observe($('strip'));
   $('cook').addEventListener('click', cook);
   $('call-leolita').addEventListener('click', masterCook);
   $('call-nif').addEventListener('click', callNif);

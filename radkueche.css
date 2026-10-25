@@ -434,3 +434,40 @@ body.game-on .deck-btns .icon-btn{width:40px;height:40px;min-height:0}
 .howto-box{background:#FBF6EA;border-radius:14px;padding:8px 12px;margin-top:6px}
 .howto-box summary{cursor:pointer;font-weight:800;color:#2F5233}
 .howto-box .howto{margin-top:8px}
+
+/* ===== Stadt bis zum Rand, Zutaten auf einen Blick ===== */
+body.game-on .stage{background:#D6EAF2;display:block;padding:0}
+body.game-on .scene-box{width:100%;height:100%}
+body.game-on .scene-box #scene{width:100%;height:100%}
+.deck-top{flex-direction:row}
+.potline-wrap{text-align:left !important;flex:1 1 420px;min-width:0}
+.deck-top .season{font-size:18px !important;white-space:nowrap}
+.tray{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:flex-start;padding:2px 0 4px}
+.tray .sgroup{flex:0 1 auto;min-width:0}
+.tray .srow{display:flex;flex-wrap:wrap;gap:5px}
+.tray .tile,.tray .tile.spice{width:62px;min-height:62px;padding:5px 2px 4px;gap:2px;border-radius:14px;font-size:11px;line-height:1.15;scroll-snap-align:none}
+.tray .tile svg,.tray .tile.spice svg{width:30px;height:30px}
+.tray .tile .count{top:2px;right:2px;font-size:10px;line-height:16px;padding:0 5px}
+.tray .slabel{font-size:10px}
+.home-btn{text-decoration:none;display:inline-flex;align-items:center}
+@media (max-height:620px){
+  body.game-on .tray .tile,body.game-on .tray .tile.spice{width:52px;min-height:50px;font-size:9.5px;padding:3px 1px}
+  body.game-on .tray .tile svg,body.game-on .tray .tile.spice svg{width:24px;height:24px}
+  body.game-on .tray .slabel{display:none}
+}
+@media (max-width:640px){
+  .tray .tile,.tray .tile.spice{width:54px;min-height:54px;font-size:10px}
+  .tray .tile svg{width:26px;height:26px}
+}
+
+@media (max-height:520px){
+  body.game-on .tray{gap:4px 8px}
+  body.game-on .tray .srow{gap:4px}
+  body.game-on .tray .tile,body.game-on .tray .tile.spice{width:40px;min-height:40px;height:40px;padding:3px;border-radius:10px}
+  body.game-on .tray .tile .tile-name{display:none}
+  body.game-on .tray .tile svg,body.game-on .tray .tile.spice svg{width:28px;height:28px}
+  body.game-on .tray .tile .count{font-size:9px;line-height:13px;padding:0 3px;top:-4px;right:-4px}
+  body.game-on .deck-top{display:flex !important;margin-bottom:2px}
+  body.game-on .deck-top .season{display:none}
+  body.game-on .potline-wrap{font-size:12px}
+}
