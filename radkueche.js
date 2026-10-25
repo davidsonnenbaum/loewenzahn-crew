@@ -576,6 +576,7 @@
     clearTimeout(toast.h);
     toast.h = setTimeout(() => t.classList.remove('show'), sub ? 4000 : 2400);
   }
+  function readMs(text) { return Math.max(3600, 1800 + String(text).length * 85); }
   function say(x, y, text, ms, who) {
     const b = document.createElement('div');
     b.className = 'bubble-say';
@@ -592,7 +593,7 @@
       b.style.left = px + 'px';
     }
     requestAnimationFrame(() => b.classList.add('show'));
-    setTimeout(() => { b.classList.remove('show'); setTimeout(() => b.remove(), 400); }, Math.max(ms || 4200, 5600));
+    setTimeout(() => { b.classList.remove('show'); setTimeout(() => b.remove(), 400); }, Math.max(ms || 0, readMs(text)) + 800);
     return b;
   }
   function logTalk(who, text) {
@@ -610,7 +611,7 @@
   let lastTalk = 0;
   function maybeSay(n, kind, force) {
     const now = performance.now();
-    if (!force && now - lastTalk < 3500) return;
+    if (!force && now - lastTalk < 5000) return;
     if (!force && bubbles.children.length >= 2) return;
     lastTalk = now;
     n.bubble = say(n.x, QY - 162, pick(LINES[n.humor][kind]), 4600, n.name);
@@ -631,7 +632,7 @@
       if (!S.queue.includes(n)) return;
       if (Math.random() < 0.7 || S.queue.length <= 2) {
         const now = performance.now();
-        if (now - lastTalk > 2200 && bubbles.children.length < 3) { lastTalk = now; n.bubble = say(n.x, QY - 162, pick(WISH_LINES[n.wish]), 4200, n.name); }
+        if (now - lastTalk > 3500 && bubbles.children.length < 3) { lastTalk = now; n.bubble = say(n.x, QY - 162, pick(WISH_LINES[n.wish]), 4200, n.name); }
       } else maybeSay(n, 'arrive');
     }, 1600);
     if (S.queue.length >= QUEUE_MAX) lose();
@@ -911,7 +912,7 @@
     } else if (r < 0.8) {
       const d = pick(DUETS);
       say(60, 340, d[0], 3400, 'Mira');
-      setTimeout(() => { if (S.phase === 'play') say(342, 330, d[1], 3800, 'Captain Dave'); }, 2300);
+      setTimeout(() => { if (S.phase === 'play') say(342, 330, d[1], 3800, 'Captain Dave'); }, readMs(d[0]) * 0.8);
     } else {
       say(60, 340, pick(MIRA_SOLO), 4200, 'Mira');
     }
@@ -1193,7 +1194,7 @@
       while (S.paused) await wait(300);
       if (prev && prev.isConnected) { prev.classList.remove('show'); const p = prev; setTimeout(() => p.remove(), 350); }
       prev = leo ? say(standX, 350, text, ms, 'Leolitta') : say(n.x, QY - 162, text, ms, n.name);
-      await wait(ms);
+      await wait(Math.max(ms, readMs(text)) + 500);
     };
     try {
       await talk(true, pick(LEO_OPEN), 3400);
@@ -1240,8 +1241,9 @@
     gertiAt(560 - 270);
     await wait(2100);
     g.classList.remove('walking');
-    say(560, 350, pick(FEAST_OPEN[kind]), 3600, 'Leolitta');
-    await wait(1600);
+    const fo = pick(FEAST_OPEN[kind]);
+    say(560, 350, fo, 3600, 'Leolitta');
+    await wait(readMs(fo) * 0.6);
     const list = S.queue.slice();
     list.forEach((n, i) => { n.tx = 620 + (i % 6) * 38; n.feast = true; });
     await wait(1900);
@@ -1253,7 +1255,7 @@
       const n = list[i];
       if (prevB && prevB.isConnected) { prevB.classList.remove('show'); const pb = prevB; setTimeout(() => pb.remove(), 350); }
       if (n.el.isConnected) prevB = say(n.x, QY - 162, cheer[i], 3000, n.name);
-      await wait(1500);
+      await wait(readMs(cheer[i]) * 0.75);
     }
     const fed = list.filter((n) => S.queue.includes(n));
     feedList(fed, 3, true);
@@ -1757,7 +1759,7 @@
       calmTick();
       // Mira unterhält die Leute
       S.banterIn -= dt;
-      if (S.banterIn <= 0) { banter(); S.banterIn = rand(13, 21); }
+      if (S.banterIn <= 0) { banter(); S.banterIn = rand(18, 28); }
       // Ungeduld
       S.queue.forEach((n, i) => {
         n.waited += dt;
