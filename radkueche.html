@@ -31,6 +31,7 @@
 
 <section class="play" aria-label="Spielfeld">
 <div class="stage" id="stage">
+<div class="scene-box" id="scenebox">
 <svg id="scene" viewBox="0 100 1200 460" width="100%" role="img" aria-label="Eine Straße mit grauen Häusern. Captain Dave kommt mit der Radküche, Nachbarn stellen sich an, und mit jedem guten Gericht wachsen Blumen.">
 <rect x="0" y="0" width="1200" height="560" fill="#D6EAF2"></rect>
 <circle cx="1060" cy="150" r="38" fill="#F2B530"></circle>
@@ -144,6 +145,8 @@
 <g id="handplate" opacity="0" style="transform: translate(362px, 398px)"><ellipse cx="0" cy="0" rx="17" ry="5" fill="#FFFFFF" stroke="#D8CDB8" stroke-width="1.5"></ellipse><ellipse id="handfood" cx="0" cy="-3" rx="10" ry="4" fill="#C9A26B"></ellipse></g>
 <g id="bees" pointer-events="none"></g>
 </svg>
+<div id="bubbles" class="bubbles" aria-live="polite"></div>
+</div>
 <div class="mini-hud" aria-live="polite">
 <span>Versorgt <b id="m-served">0</b>/20</span>
 <span class="qpill">Schlange <span class="mbar" id="m-qbar" role="progressbar" aria-label="Länge der Schlange" aria-valuemin="0" aria-valuemax="12" aria-valuenow="0"><span id="m-qfill"></span></span></span>
@@ -153,8 +156,14 @@
 <span class="opt">Hummeln <b id="m-bees">0</b></span>
 <span class="opt">Punkte <b id="m-score">0</b></span>
 </div>
+<div class="rotate-hint" aria-hidden="true">Tipp: Halte dein Handy quer, dann wird die Straße groß.</div>
 <div id="jurypop" class="jurypop" hidden></div>
-<div id="bubbles" class="bubbles" aria-live="polite"></div>
+<div class="topbtns">
+<button type="button" class="pill-btn" data-open="panel-jury">Jury</button>
+<button type="button" class="pill-btn" data-open="panel-talk">Sprüche</button>
+<button type="button" class="pill-btn" data-open="recipes-wrap">Rezepte</button>
+<button type="button" class="pill-btn" id="exit-game">Beenden</button>
+</div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <div id="petals" class="petals"></div>
 <div id="overlay" class="overlay">
@@ -168,6 +177,7 @@
 <li>Klick mit deinen Samen auf die Wiese vorne oder auf ein Haus. Blumen locken Hummeln an. Je mehr du versorgst und je mehr blüht, desto mehr spricht es sich herum, und desto mehr Leute kommen. Ist die Kiste leer, schick Jakob auf Rettungstour.</li>
 </ol>
 <p class="ov-goal">Versorg 20 Nachbarn, bevor die Schlange das andere Ende der Straße erreicht.</p>
+<p class="note portrait-hint" style="margin:8px 0 0">Am Handy macht es quer gehalten am meisten Spaß.</p>
 </div>
 <div class="ov-actions">
 <button type="button" id="ov-start" class="btn-solid">Radküche öffnen</button>
@@ -206,17 +216,20 @@
 </section>
 
 <section class="below">
-<div class="panel">
+<div class="panel drawer" id="panel-jury">
+<button type="button" class="drawer-close" aria-label="Schließen">&#215;</button>
 <h2 class="panel-h">Die Jury</h2>
 <div id="verdict" class="verdict" aria-live="polite"><p class="v-empty">Koch dein erstes Gericht, dann sag ich dir ehrlich, wie es geworden ist.</p></div>
 <p class="best" style="margin-top:14px">Dein Rekord: <strong id="best">0</strong> Punkte</p>
 </div>
-<div class="panel">
+<div class="panel drawer" id="panel-talk">
+<button type="button" class="drawer-close" aria-label="Schließen">&#215;</button>
 <h2 class="panel-h">Was die Leute sagen</h2>
 <ol id="talklog" class="talklog"><li class="empty">Noch ist es ruhig auf der Straße.</li></ol>
 </div>
 </section>
-<section class="panel recipes-panel" id="recipes-wrap" hidden>
+<section class="panel recipes-panel drawer" id="recipes-wrap" hidden>
+<button type="button" class="drawer-close" aria-label="Schließen">&#215;</button>
 <h2 class="panel-h">Oma Gertis Rezeptbuch</h2>
 <p class="note" style="margin:0 0 10px">Jedes Mal, wenn Oma Gerti kocht, landet ihr Rezept hier, Schritt für Schritt mit dem Warum.</p>
 <div id="recipes" class="recipes"><p class="empty">Noch leer.</p></div>

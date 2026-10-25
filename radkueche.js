@@ -500,6 +500,12 @@
     b.style.left = left + '%';
     b.style.top = ((y - 100) / 460 * 100) + '%';
     bubbles.appendChild(b);
+    const boxW = bubbles.clientWidth;
+    if (boxW) {
+      const bw = b.offsetWidth;
+      const px = Math.max(bw / 2 + 4, Math.min(boxW - bw / 2 - 4, left / 100 * boxW));
+      b.style.left = px + 'px';
+    }
     requestAnimationFrame(() => b.classList.add('show'));
     setTimeout(() => { b.classList.remove('show'); setTimeout(() => b.remove(), 400); }, Math.max(ms || 4200, 5600));
     return b;
@@ -1299,7 +1305,10 @@
       if (moving) n.x += Math.sign(d) * Math.min(Math.abs(d), 150 * dt);
       n.el.setAttribute('transform', `translate(${n.x.toFixed(1)} ${QY})`);
       n.el.firstChild.classList.toggle('walk-bob', moving && !reduceMotion);
-      if (n.bubble && n.bubble.isConnected) n.bubble.style.left = Math.max(12, Math.min(88, n.x / 1200 * 100)) + '%';
+      if (n.bubble && n.bubble.isConnected) {
+        const boxW = bubbles.clientWidth, bw = n.bubble.offsetWidth;
+        n.bubble.style.left = Math.max(bw / 2 + 4, Math.min(boxW - bw / 2 - 4, n.x / 1200 * boxW)) + 'px';
+      }
     });
     S.leaving = S.leaving.filter((n) => {
       if (n.leaveT > 0) { n.leaveT -= dt; n.el.setAttribute('transform', `translate(${n.x.toFixed(1)} ${QY})`); return true; }
@@ -1474,12 +1483,55 @@
 
   // ----- Knöpfe -----
   $('ov-start').addEventListener('click', () => {
+    enterGame();
     startGame();
     Music.start();
     syncSound();
-    const play = document.querySelector('.play');
-    if (play && play.getBoundingClientRect().top < 0 || (play && play.getBoundingClientRect().top > 120)) play.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
   });
+
+  // ----- Vollbild-Spielmodus: kein Scrollen mehr -----
+  function fitScene() {
+    const box = $('scenebox');
+    const st = $('stage');
+    if (!document.body.classList.contains('game-on')) {
+      box.style.width = ''; box.style.height = '';
+      st.style.removeProperty('--g'); st.style.removeProperty('--g2');
+      return;
+    }
+    const w = st.clientWidth, hgt = st.clientHeight;
+    const bw = Math.min(w, hgt * 1200 / 460);
+    const bh = bw * 460 / 1200;
+    box.style.width = bw + 'px';
+    box.style.height = bh + 'px';
+    st.style.setProperty('--g', (bh * 150 / 460) + 'px');
+    st.style.setProperty('--g2', (bh * 76 / 460) + 'px');
+  }
+  function enterGame() {
+    document.body.classList.add('game-on');
+    window.scrollTo(0, 0);
+    fitScene();
+  }
+  function closeDrawers() {
+    document.querySelectorAll('.drawer.open').forEach((d) => d.classList.remove('open'));
+  }
+  function exitGame() {
+    closeDrawers();
+    if (S.phase === 'play' && !S.paused) { S.paused = true; Music.stop(); syncButtons(); }
+    document.body.classList.remove('game-on');
+    fitScene();
+  }
+  window.addEventListener('resize', fitScene);
+  $('exit-game').addEventListener('click', exitGame);
+  document.querySelectorAll('[data-open]').forEach((b) => b.addEventListener('click', () => {
+    const d = $(b.dataset.open);
+    const wasOpen = d.classList.contains('open');
+    closeDrawers();
+    d.hidden = false;
+    if ($('recipes').querySelector('.empty')) $('recipes').querySelector('.empty').textContent = 'Noch leer. Ruf Oma Gerti mit dem goldenen Knopf, dann landet ihr Rezept hier.';
+    if (!wasOpen) requestAnimationFrame(() => d.classList.add('open'));
+  }));
+  document.querySelectorAll('.drawer-close').forEach((b) => b.addEventListener('click', closeDrawers));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDrawers(); });
   function syncSound() {
     const b = $('sound');
     b.textContent = Music.isOn() ? 'Musik: an' : 'Musik: aus';
@@ -1501,7 +1553,7 @@
   $('pause').addEventListener('click', () => {
     if (S.phase !== 'play') return;
     S.paused = !S.paused;
-    if (S.paused) Music.stop(); else Music.start();
+    if (S.paused) Music.stop(); else { Music.start(); if (!document.body.classList.contains('game-on')) enterGame(); }
     syncButtons();
     toast(S.paused ? 'Pause. Die Schlange wartet.' : 'Weiter geht’s!');
   });
