@@ -483,7 +483,7 @@
     return {
       phase: 'ready', served: 0, seeds: 0, score: 0, flowers: 0, roofs: [0, 0, 0, 0], green: [false, false, false, false],
       crate: newCrate(), pot: [], queue: [], leaving: [], bees: [], targets: [], spawnIn: 1.5, elapsed: 0, busy: false,
-      refilling: 0, paused: false, dishes: 0, nextId: 1, warm: 0, banterIn: 10, jakob: 'home', jk: { leolita: 1, stefan: 1, nif: 1 }, streak: 0, masterNext: null, helpers: [], helperDishes: 0, calmUntil: 0, stefanMark: 0, nifBusy: false
+      refilling: 0, paused: false, dishes: 0, nextId: 1, warm: 0, banterIn: 10, jakob: 'home', jk: { leolita: 1, nif: 1 }, streak: 0, masterNext: null, calmUntil: 0, nifBusy: false
     };
   }
 
@@ -728,10 +728,8 @@
     $('refill').disabled = S.phase !== 'play' || S.refilling > 0 || S.paused;
     $('pause').disabled = S.phase !== 'play';
     $('call-leolita').disabled = !playing || S.jk.leolita <= 0;
-    $('call-stefan').disabled = S.phase !== 'play' || S.paused || S.jk.stefan <= 0 || S.helpers.length > 0;
     $('call-nif').disabled = S.phase !== 'play' || S.paused || S.jk.nif <= 0 || S.nifBusy || S.calmUntil > S.elapsed;
     $('jk-leolita').textContent = '(' + S.jk.leolita + ')';
-    $('jk-stefan').textContent = '(' + S.jk.stefan + ')';
     $('jk-nif').textContent = '(' + S.jk.nif + ')';
     $('pause').textContent = S.paused ? 'Weiter' : 'Pause';
   }
@@ -912,9 +910,7 @@
   async function serve(r, color) {
     S.dishes += 1;
     const seeds = [0, 1, 3, 5][r.spoons];
-    const helping = S.helperDishes > 0 && r.spoons > 0;
-    const portions = [0, 1, 2, 4][r.spoons] + (helping ? 2 : 0);
-    if (helping) { S.helperDishes -= 1; if (S.helperDishes === 0) setTimeout(helpersDone, 3200); }
+    const portions = [0, 1, 2, 4][r.spoons];
     const feeds = Math.min(portions, S.queue.length);
     const kept = Math.max(0, Math.min(6 - S.warm, portions - feeds));
     let points = [0, 20, 50, 100][r.spoons] + (r.dish ? 30 : 0);
@@ -940,10 +936,10 @@
       ? `${portions} ${portions === 1 ? 'Portion' : 'Portionen'}` + (feeds ? `, ${feeds} gleich ausgegeben` : '') + (kept > 0 ? `, ${kept} bleiben warm` : '') + ` · +${seeds} Samen · +${points} Punkte`
       : 'Keine Samen diesmal. Probier eine andere Reihenfolge!';
     v.append(rw);
-    if (master) { const g = document.createElement('p'); g.className = 'v-master'; g.textContent = 'Gekocht von Leolita. Ihr Rezept mit allen Erklärungen steht unten im Rezeptbuch.'; v.prepend(g); }
+    if (master) { const g = document.createElement('p'); g.className = 'v-master'; g.textContent = 'Gekocht von Leolitta. Ihr Rezept mit allen Erklärungen steht unten im Rezeptbuch.'; v.prepend(g); }
     showJuryPop(r);
 
-    say(342, 330, master ? pick(['Danke, Leolita! Des war a Lehrstunde.', 'Leolita, du bist a Legende!', 'I glaub, i muss no viel lernen.']) : pick(CAPTAIN_JOKES[r.spoons]), 3800, 'Captain Dave');
+    say(342, 330, master ? pick(['Danke, Leolitta! Des war a Lehrstunde.', 'Leolitta, du bist a Legende!', 'I glaub, i muss no viel lernen.']) : pick(CAPTAIN_JOKES[r.spoons]), 3800, 'Captain Dave');
     if (Math.random() < 0.5) setTimeout(() => say(60, 340, MIRA_REACT[r.spoons], 3200, 'Mira'), 1600);
 
     if (feeds) {
@@ -965,7 +961,7 @@
   }
 
   // ---------------------------------------------------------------
-  // Bonus: Leolita, die Meisterköchin aus dem Hof
+  // Bonus: Leolitta, die Meisterköchin aus dem Hof
   // ---------------------------------------------------------------
   const SPICE_SETS = [[], ['kuemmel'], ['majoran'], ['curry'], ['muskat'], ['kuemmel', 'majoran'], ['curry', 'muskat'], ['pfeffer']];
   function buildPot(items, o) {
@@ -1051,7 +1047,7 @@
     };
     return why[id] || NAME(id) + '.';
   }
-  const GERTI_HELLO = ['Hiaz geh weg, Bua, jetzt koch i!', 'Kruzitürken, wer hat denn do so a Gwirx im Topf g’macht? Gib her!', 'Sakra, so wird des nix. Lass die Leolita ran!'];
+  const GERTI_HELLO = ['Hiaz geh weg, Bua, jetzt koch i!', 'Kruzitürken, wer hat denn do so a Gwirx im Topf g’macht? Gib her!', 'Sakra, so wird des nix. Lass die Leolitta ran!'];
   const GERTI_SCOLD = ['Und es do hint: Hörts auf mit’m Raunzen, es kriagts eh glei wos!', 'Wer drängelt, kriagt nix. So schaut’s aus!', 'Hiaz is a Ruah do hint, sonst gibt’s nur Kompott!'];
   const GERTI_BYE = ['So. Und hiaz machst as selber, gö?', 'Merk da des, i sog’s ned zwamoi!', 'Pfiat eich, und ned raunzen!'];
   function gertiAt(x) { $('gerti').style.transform = `translateX(${x}px)`; }
@@ -1059,20 +1055,20 @@
   async function masterCook() {
     if (S.phase !== 'play' || S.busy || S.jk.leolita <= 0) return;
     const avail = Object.keys(S.crate).filter((id) => S.crate[id] > 0);
-    if (!avail.length) { toast('Die Kiste ist leer.', 'Ohne Zutaten kann auch Leolita nix zaubern. Schick Jakob los!'); return; }
+    if (!avail.length) { toast('Die Kiste ist leer.', 'Ohne Zutaten kann auch Leolitta nix zaubern. Schick Jakob los!'); return; }
     S.jk.leolita -= 1;
     S.busy = true;
     clearPot();
     syncButtons();
     const plan = planMaster();
-    // Leolita kommt aus dem Hof
+    // Leolitta kommt aus dem Hof
     $('gerti').classList.add('walking');
     gertiAt(0);
     await wait(2000);
     $('gerti').classList.remove('walking');
-    say(270, 350, pick(GERTI_HELLO), 3000, 'Leolita');
+    say(270, 350, pick(GERTI_HELLO), 3000, 'Leolitta');
     await wait(1400);
-    if (S.queue.length) setTimeout(() => say(Math.min(900, S.queue[Math.min(2, S.queue.length - 1)].x), 360, pick(GERTI_SCOLD), 3200, 'Leolita'), 1500);
+    if (S.queue.length) setTimeout(() => say(Math.min(900, S.queue[Math.min(2, S.queue.length - 1)].x), 360, pick(GERTI_SCOLD), 3200, 'Leolitta'), 1500);
     const steps = [];
     const target = potMouthScreen();
     for (const id of plan.pot) {
@@ -1098,7 +1094,7 @@
     addRecipe(plan.r.dish || 'Omas Resteküche', steps);
     cook();
     setTimeout(() => {
-      say(270, 350, pick(GERTI_BYE), 3200, 'Leolita');
+      say(270, 350, pick(GERTI_BYE), 3200, 'Leolitta');
       setTimeout(() => { $('gerti').classList.add('walking'); gertiAt(-420); setTimeout(() => $('gerti').classList.remove('walking'), 2000); }, 2600);
     }, 4200);
   }
@@ -1111,7 +1107,7 @@
     d.open = true;
     book.querySelectorAll('details').forEach((x) => { x.open = false; });
     const s = document.createElement('summary');
-    s.textContent = name + ' nach Leolita';
+    s.textContent = name + ' nach Leolitta';
     const ol = document.createElement('ol');
     steps.forEach(([id, why]) => {
       const li = document.createElement('li');
@@ -1127,18 +1123,13 @@
   function earnJoker(who, reason) {
     S.jk[who] += 1;
     syncButtons();
-    const name = { leolita: 'Leolita', stefan: 'Stefan', nif: 'Nif' }[who];
+    const name = { leolita: 'Leolitta', nif: 'Nif' }[who];
     toast(name + ' hat wieder Zeit!', reason + ' Du kannst ' + (who === 'leolita' ? 'sie' : 'ihn') + ' noch einmal rufen.');
   }
 
   // ---------------------------------------------------------------
-  // Die echte Crew als Joker: Stefan (Mitmach-Küche) und Nif (Kräutertee)
+  // Die echte Crew als Joker: Nif (Kräutertee)
   // ---------------------------------------------------------------
-  const STEFAN_HELLO = ['Servus, ihr Lieben! Wer mag mitschnippeln? Gemeinsam schmeckt’s doppelt so gut.', 'I hab a Idee: Statt warten, kochen ma zam!'];
-  const STEFAN_INVITE = ['Weißt was? Statt raunzen pack ma’s gemeinsam an. Komm, i zeig dir was.', 'Du schaust aus, als könntest gut Linsen verlesen. Magst helfen?', 'Komm her, i brauch a ruhige Hand für die Antipasti.'];
-  const HELPER_YES = ['Na guat ... wenn’s sein muss.', 'I? Kochen? Na gut, probier ma’s.', 'Eigentlich hab i eh nix Besseres vor.'];
-  const STEFAN_BYE = ['Schaut’s, wie schön des wird, wenn jeder a bissl mithilft!', 'I hab euch gern. Bis bald, und kocht’s weiter zam!'];
-  const HELPER_DONE = ['Hätt i ned gedacht: Selber kochen macht ja Spaß!', 'Des nächste Mal bring i meine Nachbarin mit.', 'I bin jetzt offiziell in der Crew, oder?'];
   const NIF_HELLO = ['Atmet’s durch. Die Melisse macht des eh.', 'A Tasse Kräutertee für jeden. Ganz ohne Eile.', 'Kamille fürs Gemüt, Pfefferminz für den Kopf.'];
   const NIF_POUR = ['Für di. Riech amoi.', 'Langsam trinken, gell.', 'Spürst es? Die Ruhe kommt von selber.'];
   const NIF_BYE = ['Wer wartet, hat schon gewonnen. Servus.', 'Die Kräuter wachsen eh überall, man muss nur hinschauen.'];
@@ -1151,56 +1142,6 @@
     clearTimeout(el._w);
     el._w = setTimeout(() => el.classList.remove('walking'), ms || 1600);
     return wait(ms || 1600);
-  }
-
-  async function callStefan() {
-    if (S.phase !== 'play' || S.busy || S.jk.stefan <= 0 || S.helpers.length) return;
-    if (!S.queue.length) { toast('Grad steht niemand an.', 'Stefan kommt, wenn’s jemanden zum Mitanpacken gibt.'); return; }
-    S.jk.stefan -= 1;
-    syncButtons();
-    const st = $('stefan');
-    await walkTo(st, 330, 1800);
-    say(330, 360, pick(STEFAN_HELLO), 3400, 'Stefan');
-    await wait(1600);
-    // Am liebsten holt er die, die am meisten raunzen
-    const pool = S.queue.slice().sort((a, b) => (b.humor === 'grant') - (a.humor === 'grant'));
-    const picked = pool.slice(0, Math.min(3, pool.length));
-    const first = picked[0];
-    await walkTo(st, Math.max(400, first.x - 60), 1200);
-    say(first.x - 40, 360, pick(STEFAN_INVITE), 3200, 'Stefan');
-    await wait(1500);
-    picked.forEach((n, i) => {
-      const k = S.queue.indexOf(n);
-      if (k >= 0) S.queue.splice(k, 1);
-      n.helper = true;
-      n.hx = 300 + i * 52; n.hy = 548;
-      n.y = QY;
-      S.helpers.push(n);
-      if (i === 0) setTimeout(() => say(n.x, QY - 108, pick(HELPER_YES), 3000, n.name), 600);
-    });
-    layoutQueue();
-    S.helperDishes = 3;
-    updateHud();
-    await walkTo(st, 250, 1400);
-    toast(`${picked.length} ${picked.length === 1 ? 'Nachbar packt' : 'Nachbarn packen'} mit an!`, 'Die nächsten 3 Gerichte reichen für 2 Portionen mehr.');
-    setTimeout(() => say(250, 360, pick(STEFAN_BYE), 3400, 'Stefan'), 400);
-    await wait(3600);
-    await walkTo(st, -300, 2000);
-  }
-  function helpersDone() {
-    const hs = S.helpers.splice(0);
-    hs.forEach((n, i) => {
-      n.el.querySelector('.bowl').setAttribute('opacity', '1');
-      if (i === 0) say(n.x, n.y - 108, pick(HELPER_DONE), 3600, n.name);
-      n.helper = false;
-      n.leaveT = 1 + i * 0.3;
-      n.tx = rand(700, 1180); n.ty = rand(500, 540);
-      S.leaving.push(n);
-    });
-    S.served += hs.length;
-    toast('Die Helfer:innen essen mit und gehen glücklich heim!', `+${hs.length} versorgt. Gemeinsam geht’s leichter.`);
-    updateHud();
-    if (S.served >= GOAL) setTimeout(win, 1600);
   }
 
   function bikeTo(x, ms) {
@@ -1275,7 +1216,7 @@
       S.leaving.push(n);
     });
     S.served += fed.length;
-    if (Math.floor(S.served / 6) > S.stefanMark) { S.stefanMark = Math.floor(S.served / 6); earnJoker('stefan', S.served + ' Nachbarn versorgt!'); }
+    if (Math.floor(S.served / 7) > (S.nifMark || 0)) { S.nifMark = Math.floor(S.served / 7); earnJoker('nif', S.served + ' Nachbarn versorgt!'); }
     layoutQueue();
     updateHud();
     if (S.served >= GOAL) setTimeout(win, 1600);
@@ -1450,15 +1391,6 @@
       }
     }
 
-    // Helfer:innen von Stefan gehen zur Küche
-    S.helpers.forEach((n) => {
-      const dx = n.hx - n.x, dy = n.hy - n.y;
-      const moving = Math.abs(dx) + Math.abs(dy) > 2;
-      if (moving) { n.x += dx * Math.min(1, dt * 2.2); n.y += dy * Math.min(1, dt * 2.2); }
-      n.el.setAttribute('transform', `translate(${n.x.toFixed(1)} ${n.y.toFixed(1)})`);
-      n.el.firstChild.classList.toggle('walk-bob', moving && !reduceMotion);
-    });
-
     // Bewegung der Nachbarn
     S.queue.forEach((n) => {
       const d = n.tx - n.x;
@@ -1631,7 +1563,7 @@
     const mira = $('mira'); mira.style.transition = 'none'; mira.style.transform = 'translateX(-260px)'; void mira.getBBox(); mira.style.transition = '';
     const jk = $('jakob'); jk.style.transition = 'none'; jakobAt(-420); void jk.getBBox(); jk.style.transition = '';
     $('jakob-load').setAttribute('opacity', '0');
-    ['stefan', 'nif'].forEach((id) => { const el = $(id); el.style.transition = 'none'; el.style.transform = 'translate(-300px, 476px)'; });
+    ['nif'].forEach((id) => { const el = $(id); el.style.transition = 'none'; el.style.transform = 'translate(-300px, 476px)'; });
     const nb = $('nifbike'); nb.style.transition = 'none'; nb.style.transform = 'translate(1450px, 414px)';
     $('nif-rider').setAttribute('opacity', '1');
     $('queue').classList.remove('calm'); $('leaves').setAttribute('opacity', '0');
@@ -1695,7 +1627,7 @@
     const wasOpen = d.classList.contains('open');
     closeDrawers();
     d.hidden = false;
-    if ($('recipes').querySelector('.empty')) $('recipes').querySelector('.empty').textContent = 'Noch leer. Ruf Leolita mit dem goldenen Knopf, dann landet ihr Rezept hier.';
+    if ($('recipes').querySelector('.empty')) $('recipes').querySelector('.empty').textContent = 'Noch leer. Ruf Leolitta mit dem goldenen Knopf, dann landet ihr Rezept hier.';
     if (!wasOpen) requestAnimationFrame(() => d.classList.add('open'));
   }));
   document.querySelectorAll('.drawer-close').forEach((b) => b.addEventListener('click', closeDrawers));
@@ -1715,7 +1647,6 @@
   }, { passive: false });
   $('cook').addEventListener('click', cook);
   $('call-leolita').addEventListener('click', masterCook);
-  $('call-stefan').addEventListener('click', callStefan);
   $('call-nif').addEventListener('click', callNif);
   $('undo').addEventListener('click', undo);
   $('clear').addEventListener('click', clearPot);

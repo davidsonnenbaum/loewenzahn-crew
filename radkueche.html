@@ -173,19 +173,6 @@
 <g id="leaves" opacity="0" pointer-events="none">
 <ellipse class="leaf" cx="470" cy="420" rx="5" ry="2.6" fill="#7FA36F"></ellipse><ellipse class="leaf l2" cx="560" cy="400" rx="5" ry="2.6" fill="#5E7F5A"></ellipse><ellipse class="leaf l3" cx="650" cy="430" rx="5" ry="2.6" fill="#7FA36F"></ellipse><ellipse class="leaf" cx="740" cy="410" rx="5" ry="2.6" fill="#9DBB7E"></ellipse><ellipse class="leaf l2" cx="830" cy="425" rx="5" ry="2.6" fill="#7FA36F"></ellipse><ellipse class="leaf l3" cx="920" cy="405" rx="5" ry="2.6" fill="#5E7F5A"></ellipse><ellipse class="leaf" cx="1010" cy="420" rx="5" ry="2.6" fill="#9DBB7E"></ellipse><ellipse class="leaf l2" cx="1100" cy="410" rx="5" ry="2.6" fill="#7FA36F"></ellipse>
 </g>
-<g id="stefan" class="walker" style="transform: translate(-300px, 476px)"><g class="wbob">
-<path d="M-7 0 L-6 -30 M7 0 L6 -30" stroke="#3B2A1E" stroke-width="7" stroke-linecap="round"></path>
-<rect x="-15" y="-80" width="30" height="54" rx="11" fill="#8E2B4E"></rect>
-<path d="M-11 -66 L11 -66 L13 -26 L-13 -26 Z" fill="#FFFFFF"></path>
-<path d="M0 -44 C-6 -50 -10 -44 0 -38 C10 -44 6 -50 0 -44 Z" fill="#D7322B"></path>
-<path d="M-14 -72 L-24 -50 M14 -72 L24 -52" stroke="#8E2B4E" stroke-width="7" stroke-linecap="round"></path>
-<circle cx="0" cy="-94" r="14" fill="#E8B98E"></circle>
-<path d="M-10 -88 Q0 -78 10 -88 Q6 -82 0 -82 Q-6 -82 -10 -88 Z" fill="#6B4A32"></path>
-<circle cx="-5" cy="-96" r="1.7" fill="#3B2A1E"></circle><circle cx="5" cy="-96" r="1.7" fill="#3B2A1E"></circle>
-<path d="M-5 -90 Q0 -87 5 -90" fill="none" stroke="#3B2A1E" stroke-width="1.4" stroke-linecap="round"></path>
-<rect x="-12" y="-112" width="24" height="8" rx="2" fill="#FFFFFF" stroke="#D8CDB8" stroke-width="1"></rect>
-<path d="M-14 -112 Q-20 -128 -8 -130 Q0 -140 8 -130 Q20 -128 14 -112 Z" fill="#FFFFFF" stroke="#D8CDB8" stroke-width="1"></path>
-</g></g>
 <g id="nif" class="walker" style="transform: translate(-300px, 476px)"><g class="wbob">
 <path d="M-18 0 L-14 -70 L14 -70 L18 0 Z" fill="#6E8B4E"></path>
 <path d="M-14 -40 L14 -40" stroke="#C8925A" stroke-width="3"></path>
@@ -230,7 +217,7 @@
 <div id="ov-body" class="ov-body">
 <ol class="howto">
 <li>Tipp die Zutaten unter der Straße an. Sie fliegen direkt in den Topf der Radküche. <strong>Die Reihenfolge zählt!</strong></li>
-<li>Drück auf <strong>Abschmecken</strong>. Wenn’s brennt, ruf deine Crew: <strong>Leolita</strong> kocht ein Meistergericht und erklärt es, <strong>Stefan</strong> holt Raunzer zum Mitanpacken, und <strong>Nif</strong> beruhigt die Schlange mit Kräutertee. Die Jury bewertet mit 1 bis 3 Kochlöffeln. Je besser das Gericht, desto mehr Nachbarn werden satt und desto mehr <strong>Samen</strong> bekommst du.</li>
+<li>Drück auf <strong>Abschmecken</strong>. Wenn’s brennt, ruf deine Crew: <strong>Leolitta</strong> kocht ein Meistergericht und erklärt es, und <strong>Nif</strong> beruhigt die Schlange mit Kräutertee. Die Jury bewertet mit 1 bis 3 Kochlöffeln. Je besser das Gericht, desto mehr Nachbarn werden satt und desto mehr <strong>Samen</strong> bekommst du.</li>
 <li>Klick mit deinen Samen auf die Wiese vorne oder auf ein Haus. Blumen locken Hummeln an. Je mehr du versorgst und je mehr blüht, desto mehr spricht es sich herum, und desto mehr Leute kommen. Ist die Kiste leer, schick Jakob auf Rettungstour.</li>
 </ol>
 <p class="ov-goal">Versorg 20 Nachbarn, bevor die Schlange das andere Ende der Straße erreicht.</p>
@@ -264,8 +251,7 @@
 <button type="button" id="clear" class="btn-line">Ausleeren</button>
 <span class="spacer"></span>
 <span id="refill-note" class="note"></span>
-<button type="button" id="call-leolita" class="btn-gold" title="Meisterköchin: kocht das beste Gericht aus der Kiste und erklärt jeden Schritt">Leolita rufen <span id="jk-leolita">(1)</span></button>
-<button type="button" id="call-stefan" class="btn-gold" title="Mitmach-Küche: holt Raunzer aus der Schlange zum Mitanpacken">Stefan rufen <span id="jk-stefan">(1)</span></button>
+<button type="button" id="call-leolita" class="btn-gold" title="Meisterköchin: kocht das beste Gericht aus der Kiste und erklärt jeden Schritt">Leolitta rufen <span id="jk-leolita">(1)</span></button>
 <button type="button" id="call-nif" class="btn-gold" title="Kräutertee: beruhigt die Schlange für eine Minute">Nif rufen <span id="jk-nif">(1)</span></button>
 <button type="button" id="refill" class="btn-line">Jakob auf Rettungstour</button>
 <button type="button" id="sound" class="btn-line" aria-pressed="true">Musik: an</button>
@@ -289,8 +275,8 @@
 </section>
 <section class="panel recipes-panel drawer" id="recipes-wrap" hidden>
 <button type="button" class="drawer-close" aria-label="Schließen">&#215;</button>
-<h2 class="panel-h">Leolitas Rezeptbuch</h2>
-<p class="note" style="margin:0 0 10px">Jedes Mal, wenn Leolita kocht, landet ihr Rezept hier, Schritt für Schritt mit dem Warum.</p>
+<h2 class="panel-h">Leolittas Rezeptbuch</h2>
+<p class="note" style="margin:0 0 10px">Jedes Mal, wenn Leolitta kocht, landet ihr Rezept hier, Schritt für Schritt mit dem Warum.</p>
 <div id="recipes" class="recipes"><p class="empty">Noch leer.</p></div>
 </section>
 </main>
