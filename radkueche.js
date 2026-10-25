@@ -1181,6 +1181,7 @@
   function shuffled(a) { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; }
   async function debate(n) {
     S.debating = true;
+    n.inDebate = true;
     S.leoBusy = true;
     const g = $('gerti');
     const standX = Math.max(60, n.x - 58);
@@ -1211,6 +1212,7 @@
       toast('Leolitta hat a Herz g’öffnet! +40', n.name + ' probiert jetzt was Pflanzliches.');
       await talk(true, pick(LEO_END), 3200);
     } catch (e) { /* Runde vorbei oder Nachbar weg */ }
+    n.inDebate = false;
     g.classList.add('walking');
     gertiAt(-420);
     await wait(2000);
@@ -1763,7 +1765,7 @@
       // Ungeduld
       S.queue.forEach((n, i) => {
         n.waited += dt;
-        if (!n.gaveUp && n.wish !== 'egal' && n.waited > 50) {
+        if (!n.gaveUp && !n.inDebate && n.wish !== 'egal' && n.wish !== 'fleisch' && n.waited > 50) {
           n.gaveUp = true; n.wish = 'egal'; renderWish(n);
           if (bubbles.children.length < 3) n.bubble = say(n.x, QY - 162, pick(GIVE_UP), 3400, n.name);
         }
