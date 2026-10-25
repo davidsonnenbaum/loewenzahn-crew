@@ -377,3 +377,28 @@ body.game-on .deck-btns > *{flex:0 0 auto}
 .time-pill{background:#2F5233 !important;color:#FFFFFF !important}
 .time-pill b{color:#FFFFFF}
 #queue g{cursor:pointer}
+
+/* Rezeptbuch */
+.recipebook{display:flex;flex-direction:column;gap:10px}
+.rcard{background:#FBF6EA;border-radius:18px;border:2px solid #F3E6C9;overflow:hidden}
+.rcard[open]{border-color:#E8A35A;background:#FFFFFF}
+.rcard summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:auto 1fr;grid-template-areas:"icons txt" "icons meta";gap:2px 12px;align-items:center;padding:12px 14px}
+.rcard summary::-webkit-details-marker{display:none}
+.r-icons{grid-area:icons;display:flex;background:#FFFFFF;border-radius:14px;padding:4px 6px}
+.r-icons svg{margin-left:-6px}.r-icons svg:first-child{margin-left:0}
+.r-txt{grid-area:txt;display:flex;flex-direction:column;line-height:1.25}
+.r-txt strong{font-family:'Bricolage Grotesque',sans-serif;font-size:19px}
+.r-tag{font-size:14px;color:#6B5A4A}
+.r-meta{grid-area:meta;display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#6B5A4A}
+.r-season{background:#E8792F;color:#FFFFFF;border-radius:999px;padding:1px 9px;font-size:12px}
+.r-body{padding:0 16px 14px}
+.r-h{margin:8px 0 4px;font-size:13px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#A85E2B}
+.r-items{margin:0;padding-left:20px;columns:2;column-gap:20px;font-size:15px}
+.r-items li{break-inside:avoid;margin-bottom:2px}
+.r-steps{margin:0;padding-left:0;list-style:none;counter-reset:st;font-size:15px}
+.r-steps li{counter-increment:st;position:relative;padding:4px 0 4px 36px;line-height:1.45}
+.r-steps li::before{content:counter(st);position:absolute;left:0;top:4px;width:26px;height:26px;border-radius:50%;background:#2F5233;color:#FFFFFF;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center}
+.r-tip{margin:10px 0 0;padding:8px 12px;background:#F3E6C9;border-radius:12px;font-size:15px}
+.r-game{margin:8px 0 0;padding:8px 12px;background:#E3F0D8;border-radius:12px;font-size:14px}
+.r-sub{margin:22px 0 4px;font-family:'Bricolage Grotesque',sans-serif;font-size:20px}
+@media (max-width:640px){.r-items{columns:1}}

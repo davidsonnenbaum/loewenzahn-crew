@@ -263,7 +263,7 @@
       dish = d.name; break;
     }
     if (!dish && !sweet && savoryVeg.length >= 2 && has('wasser') && has('zwiebel')) dish = 'Gemüsesuppe';
-    if (dish) plus(3, null);
+    if (dish) plus(sweet ? 4 : 3, null);
 
     let spoons = pts >= 9 ? 3 : pts >= 4 ? 2 : pts >= 0 ? 1 : 0;
     if (bad.some(([n]) => n >= 4)) spoons = Math.min(spoons, 1);
@@ -1197,6 +1197,128 @@
     }, 4200);
   }
 
+  // ---------------------------------------------------------------
+  // Das Rezeptbuch der Radküche: echte Rezepte aus geretteten Zutaten
+  // ---------------------------------------------------------------
+  const RECIPES = [
+    {
+      name: 'Kürbiscremesuppe', tag: 'Cremig, wärmend, leuchtend orange', icons: ['kuerbis', 'karotten', 'zwiebel'],
+      serves: 4, time: '35 Min', months: [9, 10, 11, 12],
+      items: ['1 Hokkaido-Kürbis (ca. 800 g)', '2 Karotten', '1 Zwiebel', '1 EL Öl', '1 l Wasser', '1 TL Curry', 'Salz, eine Prise Muskat', 'Frische Kräuter oder Kürbiskerne'],
+      steps: ['Zwiebel würfeln und im Öl 3 Minuten glasig anschwitzen.', 'Kürbis entkernen und würfeln. Beim Hokkaido kann die Schale dranbleiben. Karotten schneiden, beides 5 Minuten mitrösten.', 'Curry kurz mitrösten, dann mit Wasser aufgießen.', 'Zugedeckt 20 Minuten köcheln, bis alles weich ist.', 'Fein pürieren, mit Salz und Muskat abschmecken, mit Kräutern bestreuen.'],
+      tip: 'Ein Schuss Hafersahne oder ein Spritzer Zitrone macht sie noch runder.',
+      game: ['oel', 'zwiebel', 'kuerbis', 'curry', 'wasser', 'salz', 'muskat', 'kraeuter']
+    },
+    {
+      name: 'Erdäpfelgulasch', tag: 'Der Wiener Klassiker, ganz pflanzlich', icons: ['kartoffeln', 'zwiebel'],
+      serves: 4, time: '45 Min', months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      items: ['1 kg Erdäpfel (mehlig)', '2 große Zwiebeln', '2 EL Öl', '1 EL Paprikapulver edelsüß', '1 TL Kümmel', '1 l Wasser', '1 TL Majoran', 'Salz, Pfeffer'],
+      steps: ['Zwiebeln fein schneiden und im Öl 8 Minuten goldbraun rösten. Die Zeit lohnt sich, das ist der Geschmack.', 'Paprikapulver dazu, nur 20 Sekunden rühren und sofort mit Wasser ablöschen, sonst wird es bitter.', 'Erdäpfel schälen, würfeln, mit Kümmel dazugeben.', '25 Minuten köcheln, bis die Erdäpfel weich sind.', 'Ein paar Stücke am Topfrand zerdrücken, damit es sämig wird. Mit Majoran, Salz und Pfeffer abschmecken.'],
+      tip: 'Am nächsten Tag schmeckt es noch besser.',
+      game: ['oel', 'zwiebel', 'kartoffeln', 'paprikapulver', 'wasser', 'kuemmel', 'salz', 'majoran']
+    },
+    {
+      name: 'Leolittas vegane Erdäpfelpuffer', tag: 'Außen knusprig, innen weich', icons: ['kartoffeln', 'zwiebel', 'oel'],
+      serves: 4, time: '30 Min', months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      items: ['800 g Erdäpfel (festkochend)', '1 Zwiebel', '3 EL Mehl', '1 TL Salz, Pfeffer, Muskat', 'Öl zum Herausbacken', 'Apfelmus zum Dazuessen'],
+      steps: ['Erdäpfel und Zwiebel fein reiben.', 'In ein Tuch geben und kräftig ausdrücken. Die Flüssigkeit kurz stehen lassen, abgießen und die weiße Stärke am Boden zurück in den Teig geben. Die hält alles zusammen, ganz ohne Ei.', 'Mehl und Gewürze untermischen.', 'Reichlich Öl stark erhitzen, flache Puffer hineinsetzen und pro Seite 3 bis 4 Minuten goldbraun backen.', 'Kurz auf Küchenpapier abtropfen lassen und sofort essen.'],
+      tip: 'Leolitta sagt: „Des Öl muss heiß sein, sonst saugen’s si voll wie a Schwamm!“',
+      game: ['oel', 'zwiebel', 'kartoffeln', 'salz', 'muskat']
+    },
+    {
+      name: 'Cremiger Linseneintopf', tag: 'Sättigt, wärmt, kostet fast nix', icons: ['linsen', 'karotten', 'lauch'],
+      serves: 4, time: '50 Min', months: [1, 2, 3, 4, 9, 10, 11, 12],
+      items: ['250 g braune Linsen', '1 Zwiebel', '2 Karotten', '1 Stange Lauch', '2 Erdäpfel', '2 EL Öl', '1,2 l Wasser', 'Majoran, Salz, ein Schuss Essig'],
+      steps: ['Zwiebel würfeln und im Öl glasig anschwitzen.', 'Karotten und Erdäpfel klein würfeln, 3 Minuten mitrösten.', 'Linsen abspülen, dazugeben und mit Wasser aufgießen.', '35 Minuten köcheln. Den Lauch in Ringen erst nach 25 Minuten dazugeben.', 'Erst am Schluss salzen, dazu Majoran und ein Schuss Essig. Der Essig weckt die Linsen auf.'],
+      tip: 'Mit roten Linsen geht’s schneller, nach 15 Minuten sind sie weich.',
+      game: ['oel', 'zwiebel', 'karotten', 'linsen', 'wasser', 'lauch', 'salz', 'majoran']
+    },
+    {
+      name: 'Wiener Krautgemüse', tag: 'Mit Kümmel und einem Hauch Apfel', icons: ['kraut', 'aepfel', 'zwiebel'],
+      serves: 4, time: '35 Min', months: [9, 10, 11, 12, 1, 2, 3],
+      items: ['½ Weißkraut (ca. 600 g)', '1 Zwiebel', '1 Apfel', '2 EL Öl', '1 TL Kümmel', '150 ml Wasser', 'Salz, Pfeffer, ein Schuss Essig'],
+      steps: ['Zwiebel in Streifen schneiden und im Öl goldgelb anrösten.', 'Kraut fein schneiden, dazugeben und 5 Minuten mitrösten, bis es leicht Farbe nimmt.', 'Kümmel und den geriebenen Apfel dazu, mit Wasser aufgießen.', 'Zugedeckt 20 Minuten dünsten, ab und zu umrühren.', 'Mit Salz, Pfeffer und einem Schuss Essig abschmecken.'],
+      tip: 'Passt wunderbar zu Erdäpfelpuffern oder Knödeln.',
+      game: ['oel', 'zwiebel', 'kraut', 'wasser', 'kuemmel', 'salz']
+    },
+    {
+      name: 'Rote-Rüben-Suppe', tag: 'Tiefrot, erdig, frisch mit Zitrone', icons: ['rueben', 'kartoffeln', 'zwiebel'],
+      serves: 4, time: '40 Min', months: [9, 10, 11, 12, 1, 2, 3],
+      items: ['500 g Rote Rüben', '1 Erdapfel', '1 Zwiebel', '1 EL Öl', '1 l Wasser', '½ TL Kümmel', 'Salz, Saft einer halben Zitrone', 'Frische Kräuter, nach Lust etwas Kren'],
+      steps: ['Zwiebel würfeln und im Öl glasig anschwitzen.', 'Rote Rüben und Erdapfel schälen und würfeln. Tipp: Handschuhe anziehen, die Farbe hält.', 'Mitrösten, Kümmel dazu, mit Wasser aufgießen.', '25 Minuten köcheln, bis alles weich ist.', 'Pürieren, mit Salz und Zitrone abschmecken, Kräuter drüber.'],
+      tip: 'Ein Löffel geriebener Kren obendrauf macht sie richtig wienerisch.',
+      game: ['oel', 'zwiebel', 'rueben', 'kartoffeln', 'wasser', 'kuemmel', 'salz', 'zitrone']
+    },
+    {
+      name: 'Brotsuppe', tag: 'Aus altem Brot wird ein Festessen', icons: ['brot', 'zwiebel', 'knoblauch'],
+      serves: 4, time: '25 Min', months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      items: ['200 g altes Brot', '1 Zwiebel', '2 Knoblauchzehen', '2 EL Öl', '1 l Wasser oder Gemüsebrühe', '½ TL Kümmel, 1 TL Majoran', 'Salz, Pfeffer', 'Schnittlauch'],
+      steps: ['Brot in kleine Würfel schneiden. Die Hälfte davon im Öl knusprig anrösten und zur Seite stellen.', 'Im selben Topf Zwiebel glasig anschwitzen, dann kurz den Knoblauch mit.', 'Das restliche Brot, Kümmel und Wasser dazugeben, 10 Minuten köcheln.', 'Grob pürieren oder einfach verrühren, mit Majoran, Salz und Pfeffer abschmecken.', 'Mit den knusprigen Brotwürfeln und Schnittlauch servieren.'],
+      tip: 'Je älter das Brot, desto besser saugt es die Suppe auf.',
+      game: ['oel', 'zwiebel', 'knoblauch', 'brot', 'wasser', 'kuemmel', 'salz', 'majoran']
+    },
+    {
+      name: 'Veganer Scheiterhaufen', tag: 'Die beste Nachspeis aus altem Brot', icons: ['brot', 'aepfel'],
+      serves: 4, time: '55 Min', months: [8, 9, 10, 11, 12, 1, 2, 3, 4],
+      items: ['300 g altes Brot oder Semmeln', '4 Äpfel', '400 ml Hafer- oder Sojamilch', '2 EL Zucker', '1 EL Speisestärke', '1 TL Zimt', 'Etwas Öl oder Margarine für die Form'],
+      steps: ['Backrohr auf 180 °C vorheizen, eine Form einfetten.', 'Brot in dünne Scheiben schneiden, Äpfel entkernen und dünn schneiden.', 'Milch, Zucker, Stärke und Zimt verrühren.', 'Brot und Äpfel abwechselnd in die Form schichten und die Milch darübergießen. 10 Minuten ziehen lassen.', '35 bis 40 Minuten backen, bis es oben goldbraun ist.'],
+      tip: 'Ein paar Rosinen oder Nüsse zwischen den Schichten machen ihn festlich.',
+      game: ['oel', 'brot', 'aepfel', 'zimt', 'zitrone']
+    },
+    {
+      name: 'Zwetschkenröster', tag: 'Fruchtig, schnell, zu allem gut', icons: ['zwetschken'],
+      serves: 4, time: '20 Min', months: [8, 9, 10],
+      items: ['500 g Zwetschken', '2 EL Zucker', '1 Zimtstange oder ½ TL Zimt', '100 ml Wasser', 'Ein Spritzer Zitrone'],
+      steps: ['Zwetschken halbieren und entkernen.', 'Zucker in einem Topf leicht schmelzen lassen, mit Wasser ablöschen.', 'Zwetschken und Zimt dazugeben.', 'Bei kleiner Hitze 10 bis 15 Minuten köcheln, bis die Früchte weich sind, aber noch Form haben.', 'Mit Zitrone abschmecken, warm oder kalt servieren.'],
+      tip: 'Hält im Glas gut eine Woche und passt zu Kaiserschmarrn, Porridge oder Scheiterhaufen.',
+      game: ['zwetschken', 'zimt', 'wasser', 'zitrone']
+    }
+  ];
+
+  function renderBook() {
+    const box = $('recipebook');
+    if (!box) return;
+    const mo = new Date().getMonth() + 1;
+    const list = RECIPES.slice().sort((a, b) => (b.months.includes(mo) && b.months.length < 12) - (a.months.includes(mo) && a.months.length < 12));
+    box.innerHTML = '';
+    list.forEach((r) => {
+      const card = document.createElement('details');
+      card.className = 'rcard';
+      const sum = document.createElement('summary');
+      const icons = document.createElement('span');
+      icons.className = 'r-icons';
+      icons.innerHTML = r.icons.map((id) => `<svg width="34" height="34" viewBox="0 0 48 48" aria-hidden="true">${ICONS[id] || ''}</svg>`).join('');
+      const txt = document.createElement('span');
+      txt.className = 'r-txt';
+      const t = document.createElement('strong'); t.textContent = r.name;
+      const tg = document.createElement('span'); tg.className = 'r-tag'; tg.textContent = r.tag;
+      txt.append(t, tg);
+      const meta = document.createElement('span');
+      meta.className = 'r-meta';
+      meta.textContent = r.serves + ' Portionen · ' + r.time;
+      if (r.months.includes(mo) && r.months.length < 12) {
+        const s = document.createElement('span'); s.className = 'r-season'; s.textContent = 'Jetzt Saison';
+        meta.append(s);
+      }
+      sum.append(icons, txt, meta);
+      const body = document.createElement('div');
+      body.className = 'r-body';
+      const h1 = document.createElement('p'); h1.className = 'r-h'; h1.textContent = 'Du brauchst';
+      const ul = document.createElement('ul'); ul.className = 'r-items';
+      r.items.forEach((i) => { const li = document.createElement('li'); li.textContent = i; ul.append(li); });
+      const h2 = document.createElement('p'); h2.className = 'r-h'; h2.textContent = 'So geht’s';
+      const ol = document.createElement('ol'); ol.className = 'r-steps';
+      r.steps.forEach((s) => { const li = document.createElement('li'); li.textContent = s; ol.append(li); });
+      const tip = document.createElement('p'); tip.className = 'r-tip'; tip.textContent = 'Tipp: ' + r.tip;
+      const g = document.createElement('p'); g.className = 'r-game';
+      const gb = document.createElement('strong'); gb.textContent = 'Im Spiel: ';
+      g.append(gb, document.createTextNode(r.game.map(NAME).join(' → ')));
+      body.append(h1, ul, h2, ol, tip, g);
+      card.append(sum, body);
+      box.append(card);
+    });
+  }
+
   function addRecipe(name, steps) {
     const book = $('recipes');
     const empty = book.querySelector('.empty');
@@ -1215,7 +1337,6 @@
     });
     d.append(s, ol);
     book.prepend(d);
-    $('recipes-wrap').hidden = false;
   }
 
   function earnJoker(who, reason) {
@@ -1773,6 +1894,10 @@
   }
   function closeDrawers() {
     document.querySelectorAll('.drawer.open').forEach((d) => d.classList.remove('open'));
+    if (S.autoPaused) {
+      S.autoPaused = false;
+      if (S.phase === 'play' && S.paused) { S.paused = false; Music.start(); syncButtons(); }
+    }
   }
   function exitGame() {
     closeDrawers();
@@ -1787,8 +1912,10 @@
     const wasOpen = d.classList.contains('open');
     closeDrawers();
     d.hidden = false;
-    if ($('recipes').querySelector('.empty')) $('recipes').querySelector('.empty').textContent = 'Noch leer. Ruf Leolitta mit dem goldenen Knopf, dann landet ihr Rezept hier.';
-    if (!wasOpen) requestAnimationFrame(() => d.classList.add('open'));
+    if (!wasOpen) {
+      if (S.phase === 'play' && !S.paused && document.body.classList.contains('game-on')) { S.paused = true; S.autoPaused = true; Music.stop(); syncButtons(); }
+      requestAnimationFrame(() => d.classList.add('open'));
+    }
   }));
   document.querySelectorAll('.drawer-close').forEach((b) => b.addEventListener('click', closeDrawers));
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDrawers(); });
@@ -1825,6 +1952,7 @@
   // Start
   S = freshState();
   renderStatic();
+  renderBook();
   renderCrate();
   renderPotList();
   updateHud();
