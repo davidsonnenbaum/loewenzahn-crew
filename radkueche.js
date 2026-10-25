@@ -320,6 +320,7 @@
     }
   };
   const CAPTAIN_LINES = ['Ahoi, Nachbarschaft! Heute gibt’s Gerettetes!', 'Gleich geht’s los, der Topf wird schon warm!'];
+  const NAMES = ['Frau Novak', 'Herr Huber', 'Oma Gerti', 'Herr Yilmaz', 'Frau Horvath', 'Herr Pichler', 'Tante Mitzi', 'Herr Kovač', 'Frau Sommer', 'Opa Ferdl', 'Frau Steiner', 'Herr Adler', 'Frau Weiss', 'Herr Berger', 'Frau Popović', 'Herr Brunner', 'Frau Lehner', 'Herr Schwarz'];
   const SKIN = ['#E8B98E', '#C69468', '#8A5A3C', '#F1C9A5', '#A86B45', '#5C3A24'];
   const SHIRT = ['#E7A6A1', '#5E7F5A', '#C97B3D', '#9CC7DF', '#7B5BB5', '#F2B530', '#2F5233', '#B8432F'];
   const HATS = ['none', 'beanie', 'cap', 'hut', 'scarf', 'bun', 'none'];
@@ -382,17 +383,30 @@
     clearTimeout(toast.h);
     toast.h = setTimeout(() => t.classList.remove('show'), sub ? 4000 : 2400);
   }
-  function say(x, y, text, ms) {
+  function say(x, y, text, ms, who) {
     const b = document.createElement('div');
     b.className = 'bubble-say';
     b.textContent = text;
+    logTalk(who || 'Nachbar:in', text);
     const left = Math.max(12, Math.min(88, x / 1200 * 100));
     b.style.left = left + '%';
     b.style.top = ((y - 100) / 460 * 100) + '%';
     bubbles.appendChild(b);
     requestAnimationFrame(() => b.classList.add('show'));
-    setTimeout(() => { b.classList.remove('show'); setTimeout(() => b.remove(), 400); }, ms || 4200);
+    setTimeout(() => { b.classList.remove('show'); setTimeout(() => b.remove(), 400); }, Math.max(ms || 4200, 5600));
     return b;
+  }
+  function logTalk(who, text) {
+    const list = $('talklog');
+    if (!list) return;
+    const empty = list.querySelector('.empty');
+    if (empty) empty.remove();
+    const li = document.createElement('li');
+    li.className = who === 'Captain Dave' ? 'cap' : '';
+    const s = document.createElement('strong'); s.textContent = who + ': ';
+    li.append(s, document.createTextNode(text));
+    list.prepend(li);
+    while (list.children.length > 40) list.lastChild.remove();
   }
   let lastTalk = 0;
   function maybeSay(n, kind, force) {
@@ -400,7 +414,7 @@
     if (!force && now - lastTalk < 3500) return;
     if (!force && bubbles.children.length >= 2) return;
     lastTalk = now;
-    n.bubble = say(n.x, QY - 108, pick(LINES[n.humor][kind]), 4600);
+    n.bubble = say(n.x, QY - 108, pick(LINES[n.humor][kind]), 4600, n.name);
   }
 
   // ----- Nachbarn -----
@@ -409,7 +423,7 @@
     const g = mk('g', {});
     g.innerHTML = personMarkup(look);
     queueLayer.appendChild(g);
-    const n = { id: S.nextId++, el: g, x: 1260, tx: 0, humor: pick(['grant', 'schmaeh', 'jiddisch']), waited: 0, talkedWait: false };
+    const n = { id: S.nextId++, el: g, x: 1260, tx: 0, humor: pick(['grant', 'schmaeh', 'jiddisch']), name: pick(NAMES), waited: 0, talkedWait: false };
     S.queue.push(n);
     layoutQueue();
     if (Math.random() < 0.55 || S.queue.length <= 2) setTimeout(() => { if (S.queue.includes(n)) maybeSay(n, 'arrive'); }, 1600);
@@ -509,6 +523,8 @@
     } else {
       S.pot.forEach((id, i) => { const li = document.createElement('li'); li.textContent = (i + 1) + '. ' + NAME(id); list.append(li); });
     }
+    const qb = $('qb-list');
+    if (qb) qb.textContent = S.pot.length ? S.pot.map(NAME).join(' → ') : 'noch leer';
     syncButtons();
   }
 
@@ -582,6 +598,20 @@
     const pt = svgEl.createSVGPoint(); pt.x = 160; pt.y = 118;
     return pt.matrixTransform(svgEl.getScreenCTM());
   }
+  function stickyBottom() {
+    const st = document.querySelector('.sticky-top');
+    if (!st || getComputedStyle(st).position !== 'sticky') return 0;
+    return st.getBoundingClientRect().bottom;
+  }
+  function bigPotVisible() {
+    const r = $('potsvg').getBoundingClientRect();
+    const cy = r.top + r.height * 0.4;
+    return cy > stickyBottom() && cy < window.innerHeight;
+  }
+  function scenePotScreen() {
+    const pt = svg.createSVGPoint(); pt.x = 249; pt.y = 334;
+    return pt.matrixTransform(svg.getScreenCTM());
+  }
   function fly(fromEl, html, toX, toY, size, done, opts) {
     if (reduceMotion || !fromEl) { done(); return; }
     const r = fromEl.getBoundingClientRect();
@@ -608,6 +638,8 @@
     $('cook').disabled = !playing || !S.pot.length;
     $('undo').disabled = !playing || !S.pot.length;
     $('clear').disabled = !playing || !S.pot.length;
+    $('qb-cook').disabled = !playing || !S.pot.length;
+    $('qb-undo').disabled = !playing || !S.pot.length;
     $('refill').disabled = !(S.phase === 'play') || S.refilling > 0 || S.paused;
     $('pause').disabled = S.phase !== 'play';
     $('pause').textContent = S.paused ? 'Weiter' : 'Pause';
@@ -620,7 +652,7 @@
       if (S.crate[id] <= 0) delete S.crate[id];
     }
     S.pot.push(id);
-    const target = potMouthScreen();
+    const target = bigPotVisible() ? potMouthScreen() : scenePotScreen();
     const icon = fromEl ? fromEl.querySelector('svg') : null;
     if (ING[id]) renderCrate();
     renderPotList();
@@ -704,7 +736,7 @@
     $('ui-food').setAttribute('opacity', '0');
     const stageVisible = (() => { const r = sceneSvg.getBoundingClientRect(); return r.bottom > 0 && r.top < window.innerHeight; })();
     await new Promise((res) => {
-      if (!stageVisible || result.spoons === 0) { res(); return; }
+      if (!stageVisible || !bigPotVisible() || result.spoons === 0) { res(); return; }
       fly(plateEl, plateHtml, target.x, target.y, 90, res, { ms: 800, spin: 0, midScale: 1.15, endScale: 0.5, lift: 120 });
     });
     serve(result, color);
@@ -761,13 +793,13 @@
     v.append(rw);
 
     // Der Captain macht einen Witz
-    say(342, 330, pick(CAPTAIN_JOKES[r.spoons]), 3800);
+    say(342, 330, pick(CAPTAIN_JOKES[r.spoons]), 3800, 'Captain Dave');
 
     if (feeds) {
       const front = S.queue.slice(0, feeds);
       for (let i = 0; i < front.length; i++) {
         await handOver(front[i], color);
-        if (i === 0) setTimeout(() => { if (front[0].el.isConnected) say(front[0].x, QY - 108, pick(LINES[front[0].humor]['r' + r.spoons]), 4000); }, 900);
+        if (i === 0) setTimeout(() => { if (front[0].el.isConnected) say(front[0].x, QY - 108, pick(LINES[front[0].humor]['r' + r.spoons]), 4000, front[0].name); }, 900);
       }
       feedFront(feeds, r.spoons, true);
     } else if (S.queue.length && r.spoons === 0) {
@@ -785,7 +817,7 @@
     const fed = S.queue.splice(0, count);
     fed.forEach((n, i) => {
       n.el.querySelector('.bowl').setAttribute('opacity', '1');
-      if (!handed && i === 0 && Math.random() < 0.6) setTimeout(() => say(n.x, QY - 108, pick(LINES[n.humor]['r' + spoons]), 4000), 200);
+      if (!handed && i === 0 && Math.random() < 0.6) setTimeout(() => say(n.x, QY - 108, pick(LINES[n.humor]['r' + spoons]), 4000, n.name), 200);
       n.leaveT = 0.4 + i * 0.35;
       n.ty = rand(500, 540);
       n.tx = rand(QX0 + 40, 1180);
@@ -1021,6 +1053,9 @@
     $('h-bees').textContent = S.bees.length;
     $('h-score').textContent = S.score;
     $('h-warm').textContent = S.warm;
+    $('m-served').textContent = S.served;
+    $('m-seeds').textContent = S.seeds;
+    $('m-warm').textContent = S.warm;
     $('best').textContent = best;
     svg.classList.toggle('planting', S.seeds > 0 && S.phase === 'play');
     updateQueueBar();
@@ -1044,7 +1079,7 @@
     }, 2700 * T);
     setTimeout(() => { aw.classList.add('open'); }, 3500 * T);
     setTimeout(() => { $('flame').setAttribute('opacity', '1'); }, 4400 * T);
-    setTimeout(() => { $('steam').setAttribute('opacity', '1'); say(342, 330, pick(CAPTAIN_LINES), 3200); }, 5000 * T);
+    setTimeout(() => { $('steam').setAttribute('opacity', '1'); say(342, 330, pick(CAPTAIN_LINES), 3200, 'Captain Dave'); }, 5000 * T);
     setTimeout(() => {
       S.phase = 'play';
       S.spawnIn = 0.2;
@@ -1077,7 +1112,7 @@
   function lose() {
     if (S.phase !== 'play') return;
     const n = S.queue[S.queue.length - 1];
-    if (n) say(n.x, QY - 108, pick(LINES.grant.r0), 3000);
+    if (n) say(n.x, QY - 108, pick(LINES.grant.r0), 3000, n.name);
     endScreen('Die Schlange reicht bis ans Ende der Straße.', 'Na servas, des war heut a harter Tag.',
       [`Du hast ${S.served} von ${GOAL} Nachbarn versorgt. Tipp: Je besser das Gericht, desto mehr Leute werden auf einmal satt. Und Blumen machen die Wartenden geduldiger.`,
        `Deine Punkte: ${S.score}. Dein Rekord: ${best}.`,
@@ -1138,6 +1173,8 @@
   $('ov-start').addEventListener('click', startGame);
   $('cook').addEventListener('click', cook);
   $('undo').addEventListener('click', undo);
+  $('qb-cook').addEventListener('click', cook);
+  $('qb-undo').addEventListener('click', undo);
   $('clear').addEventListener('click', clearPot);
   $('refill').addEventListener('click', refill);
   $('pause').addEventListener('click', () => {

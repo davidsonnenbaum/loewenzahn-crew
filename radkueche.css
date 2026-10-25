@@ -61,7 +61,7 @@ a{color:#2F5233}a:hover{color:#1E3822}
 @keyframes flap{from{transform:scaleY(1)}to{transform:scaleY(.45)}}
 
 .bubbles{position:absolute;inset:0;pointer-events:none}
-.bubble-say{position:absolute;transform:translate(-50%,-100%);background:#FFFFFF;color:#3B2A1E;font-size:clamp(11px,1.3vw,15px);font-weight:600;line-height:1.35;padding:8px 12px;border-radius:14px;max-width:min(240px,40%);box-shadow:0 4px 14px rgba(59,42,30,.16);opacity:0;transition:opacity .3s ease}
+.bubble-say{position:absolute;transform:translate(-50%,-100%);background:#FFFFFF;color:#3B2A1E;font-size:clamp(12px,1.25vw,15px);font-weight:600;line-height:1.35;padding:8px 12px;border-radius:14px;max-width:min(260px,46%);box-shadow:0 4px 14px rgba(59,42,30,.16);opacity:0;transition:opacity .3s ease}
 .bubble-say.show{opacity:1}
 .bubble-say::after{content:"";position:absolute;left:50%;bottom:-7px;margin-left:-7px;border:7px solid transparent;border-bottom:0;border-top-color:#FFFFFF}
 .toast{position:absolute;left:50%;top:14px;transform:translate(-50%,-8px);max-width:min(92%,560px);background:#2F5233;color:#FFFFFF;font-weight:700;font-size:16px;line-height:1.4;padding:12px 20px;border-radius:18px;opacity:0;pointer-events:none;transition:opacity .35s ease,transform .35s ease;text-align:center;box-shadow:0 6px 20px rgba(59,42,30,.18)}
@@ -197,3 +197,29 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .jurycard{padding:16px 20px}
 .jurycard .v-head{font-size:22px}
 .jurycard .v-list{font-size:16px}
+
+/* Szene immer im Blick */
+.sticky-top{display:flex;flex-direction:column;gap:8px}
+.quickbar{display:none;align-items:center;justify-content:space-between;gap:10px;background:#FFFFFF;border-radius:16px;padding:8px 12px;box-shadow:0 4px 14px rgba(59,42,30,.12)}
+.qb-pot{margin:0;font-size:14px;line-height:1.35;min-width:0;flex:1}
+.qb-btns{display:flex;gap:6px;flex:0 0 auto}
+.btn-solid.small{min-height:40px;padding:8px 14px;font-size:14px}
+.mini-hud{position:absolute;left:10px;top:10px;display:flex;gap:6px;pointer-events:none}
+.mini-hud span{background:rgba(255,255,255,.88);border-radius:999px;padding:3px 10px;font-size:13px;font-weight:700;color:#3B2A1E}
+.talk{margin-top:16px;padding-top:14px;border-top:2px solid #F3E6C9}
+.talklog{list-style:none;margin:0;padding:0;max-height:220px;overflow:auto;display:flex;flex-direction:column;gap:6px;font-size:15px;line-height:1.4}
+.talklog li{background:#FBF6EA;border-radius:12px;padding:8px 12px}
+.talklog li.cap{background:#E3EEF2}
+.talklog li.empty{background:transparent;padding:0;color:#6B5A4A}
+@media (max-width:1000px){
+  .left-col{display:contents}
+  .sticky-top{position:sticky;top:0;z-index:30;background:#FBF6EA;padding:6px 0 8px;order:1}
+  .quickbar{display:flex}
+  .potcard{order:2}
+  .right-col{order:3}
+  .jurycard{order:4}
+}
+@media (max-width:640px){
+  .mini-hud span{font-size:11px;padding:2px 8px}
+  .bubble-say{font-size:12px;max-width:58%}
+}

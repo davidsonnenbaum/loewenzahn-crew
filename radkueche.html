@@ -40,6 +40,7 @@
 
 <div class="game-grid">
 <div class="left-col">
+<div class="sticky-top">
 <div class="stage" id="stage">
 <svg id="scene" viewBox="0 100 1200 460" width="100%" role="img" aria-label="Eine Straße mit grauen Häusern. Captain Dave kommt mit der Radküche, Nachbarn stellen sich an, und mit jedem guten Gericht wachsen Blumen.">
 <rect x="0" y="0" width="1200" height="560" fill="#D6EAF2"></rect>
@@ -111,6 +112,7 @@
 <g id="bees" pointer-events="none"></g>
 </svg>
 
+<div class="mini-hud" aria-hidden="true"><span>Versorgt <b id="m-served">0</b>/20</span><span>Samen <b id="m-seeds">0</b></span><span>Warm <b id="m-warm">0</b></span></div>
 <div id="bubbles" class="bubbles" aria-live="polite"></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <div id="petals" class="petals"></div>
@@ -134,7 +136,11 @@
 </div>
 </div>
 </div>
-
+<div class="quickbar">
+<p class="qb-pot"><strong>Im Topf:</strong> <span id="qb-list">noch leer</span></p>
+<div class="qb-btns"><button type="button" id="qb-cook" class="btn-solid small">Abschmecken</button><button type="button" id="qb-undo" class="btn-line small">Zurück</button></div>
+</div>
+</div>
 <section class="potcard" aria-labelledby="pot-h">
 <h2 id="pot-h" class="visually-hidden">Der Topf</h2>
 <div class="potstage" id="potstage">
@@ -180,6 +186,10 @@
 <div id="verdict" class="verdict">
 <p class="v-empty">Koch dein erstes Gericht, dann sag ich dir ehrlich, wie es geworden ist.</p>
 </div>
+</div>
+<div class="talk">
+<h3 class="jury-h">Was die Leute sagen</h3>
+<ol id="talklog" class="talklog"><li class="empty">Noch ist es ruhig auf der Straße.</li></ol>
 </div>
 <div class="pause-row">
 <button type="button" id="pause" class="btn-line small">Pause</button>
