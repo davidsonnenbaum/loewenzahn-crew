@@ -470,7 +470,8 @@
     deftig: { label: 'was Deftiges' },
     suess:  { label: 'was Süßes' },
     scharf: { label: 'was Scharfes' },
-    egal:   { label: 'egal, Hauptsache warm' }
+    egal:   { label: 'egal, Hauptsache warm' },
+    fleisch: { label: 'Fleisch' }
   };
   const WISH_LINES = {
     brot: ['I brauch nur a Stückl Brot, mehr ned.', 'A Scheiberl Brot, bitte. Altes is ma eh lieber.', 'Brot! Nur Brot. I bin a einfacher Mensch.'],
@@ -480,14 +481,15 @@
     deftig: ['Was Deftiges! Mit Erdäpfeln, wenn’s geht.', 'I brauch was G’scheites im Magen.', 'Was Kräftiges, i hab heut no viel vor.'],
     suess: ['Was Süßes, bitte, sonst werd i grantig.', 'A Nachspeis! Ohne Nachspeis is ka Tag.', 'Was Süßes für die Seele.'],
     scharf: ['Scharf muss es sein, dass ma die Augen rinnen!', 'Was Feuriges, bitte. I bin a Feuerwehrmann.', 'Je schärfer, desto besser!'],
-    egal: ['Is ma wurscht, Hauptsach warm.', 'Ganz egal, i iss alles. Fast alles.', 'Überrasch mi!']
+    egal: ['Is ma wurscht, Hauptsach warm.', 'Ganz egal, i iss alles. Fast alles.', 'Überrasch mi!'],
+    fleisch: ['Habt’s a Schnitzerl?', 'A Wurstsemmel wär ma recht.', 'Wo is’n do des Fleisch?', 'I hätt gern a Leberkäs.']
   };
   const GIVE_UP = ['Na guat, dann nimm i halt irgendwas.', 'Wurscht, i nimm, was kommt.', 'I bin ja ned anspruchsvoll. Gib, was d’ hast.'];
   const WISH_HAPPY = ['Genau des hab i ma g’wünscht!', 'Woher hast g’wusst, was i will?', 'Du hörst ja richtig zu, Captain!', 'Treffer! Mitten ins Herz.'];
   function pickWish() {
     const mo = new Date().getMonth() + 1;
     const cold = [10, 11, 12, 1, 2, 3].includes(mo);
-    const w = { brot: 2, wasser: 2, obst: 1.5, suppe: cold ? 4 : 2, deftig: cold ? 3 : 2, suess: 1.6, scharf: 1, egal: 1.4 };
+    const w = { brot: 2, wasser: 2, obst: 1.5, suppe: cold ? 4 : 2, deftig: cold ? 3 : 2, suess: 1.6, scharf: 1, egal: 1.4, fleisch: 1.1 };
     const total = Object.values(w).reduce((a, b) => a + b, 0);
     let r = Math.random() * total;
     for (const k in w) { r -= w[k]; if (r <= 0) return k; }
@@ -498,6 +500,7 @@
     if (w === 'wasser') return ICONS.wasser;
     if (w === 'obst') return ICONS.aepfel;
     if (w === 'deftig') return ICONS.kartoffeln;
+    if (w === 'fleisch') return '<rect x="7" y="18" width="34" height="14" rx="7" fill="#B5651D" transform="rotate(-15 24 25)"></rect><path d="M10 30 Q16 24 22 28 M24 24 Q30 20 36 22" fill="none" stroke="#8A4524" stroke-width="2" stroke-linecap="round"></path><path d="M6 31 L2 33 M42 19 L46 17" stroke="#6B4A32" stroke-width="2.5" stroke-linecap="round"></path>';
     if (w === 'suppe') return '<path d="M6 24 L42 24 Q40 42 24 42 Q8 42 6 24 Z" fill="#C97B3D"></path><ellipse cx="24" cy="24" rx="18" ry="4" fill="#E8A35A"></ellipse><path d="M16 18 Q13 12 16 6 M24 18 Q21 12 24 6 M32 18 Q29 12 32 6" fill="none" stroke="#9CC7DF" stroke-width="3" stroke-linecap="round"></path>';
     if (w === 'suess') return '<path d="M10 26 L38 26 L34 42 L14 42 Z" fill="#E7A6A1"></path><path d="M8 26 Q10 12 24 12 Q38 12 40 26 Z" fill="#FBF6EA" stroke="#E7A6A1" stroke-width="2"></path><circle cx="24" cy="9" r="4.5" fill="#D7322B"></circle>';
     if (w === 'scharf') return '<path d="M14 14 Q8 30 22 40 Q34 46 40 38 Q28 38 22 28 Q18 20 20 14 Z" fill="#E0301E"></path><path d="M16 14 Q16 6 24 6" fill="none" stroke="#4E9A45" stroke-width="3.5" stroke-linecap="round"></path>';
@@ -507,7 +510,7 @@
     const g = n.el.querySelector('.wish');
     if (!g) return;
     const direct = WISH[n.wish].direct;
-    g.innerHTML = `<rect x="-22" y="-150" width="44" height="40" rx="12" fill="#FFFFFF" stroke="${direct ? '#2F5233' : '#C97B3D'}" stroke-width="${direct ? 3.5 : 2.5}"></rect><path d="M-5 -110 L0 -103 L5 -110 Z" fill="#FFFFFF"></path><g transform="translate(-16 -146) scale(.67)">${wishIconInner(n.wish)}</g>${direct ? '<circle cx="18" cy="-146" r="7" fill="#2F5233"></circle><path d="M15 -146 L17.5 -143.5 L21.5 -149" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>' : ''}`;
+    g.innerHTML = `<rect x="-22" y="-150" width="44" height="40" rx="12" fill="#FFFFFF" stroke="${direct ? '#2F5233' : n.wish === 'fleisch' ? '#B8432F' : '#C97B3D'}" stroke-width="${direct ? 3.5 : 2.5}"></rect><path d="M-5 -110 L0 -103 L5 -110 Z" fill="#FFFFFF"></path><g transform="translate(-16 -146) scale(.67)">${wishIconInner(n.wish)}</g>${direct ? '<circle cx="18" cy="-146" r="7" fill="#2F5233"></circle><path d="M15 -146 L17.5 -143.5 L21.5 -149" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>' : ''}`;
     g.setAttribute('opacity', '1');
   }
   function dishCats(pot) {
@@ -557,7 +560,7 @@
     return {
       phase: 'ready', served: 0, seeds: 0, score: 0, flowers: 0, roofs: [0, 0, 0, 0], green: [false, false, false, false],
       crate: newCrate(), pot: [], queue: [], leaving: [], bees: [], targets: [], spawnIn: 1.5, elapsed: 0, busy: false,
-      refilling: 0, paused: false, dishes: 0, nextId: 1, warm: [], banterIn: 10, jakob: 'home', jk: { leolita: 1, nif: 1 }, wishHits: 0, givenDirect: 0, streak: 0, masterNext: null, calmUntil: 0, nifBusy: false
+      refilling: 0, paused: false, dishes: 0, nextId: 1, warm: [], banterIn: 10, jakob: 'home', jk: { leolita: 1, nif: 1 }, converted: 0, leoBusy: false, debating: false, nextDebate: 0, wishHits: 0, givenDirect: 0, streak: 0, masterNext: null, calmUntil: 0, nifBusy: false
     };
   }
 
@@ -1150,11 +1153,74 @@
   const GERTI_BYE = ['So. Und hiaz machst as selber, gö?', 'Merk da des, i sog’s ned zwamoi!', 'Pfiat eich, und ned raunzen!'];
   function gertiAt(x) { $('gerti').style.transform = `translateX(${x}px)`; }
 
+  // ---------------------------------------------------------------
+  // Leolitta, die Tierrechtlerin: diskutiert direkt, aber mit Herz
+  // ---------------------------------------------------------------
+  const LEO_OPEN = [
+    'Hearst, wos hast’n do g’sagt? Fleisch? Des geht si bei mir gar ned aus!',
+    'A Schnitzerl? Bei da Radküch? Do bist an da falschen Adress, Freind!',
+    'Wos? A Wurstsemmel wüllst? Waßt du überhaupt, wos des Viech mitg’macht hat?'
+  ];
+  const DEBATE_PAIRS = [
+    ['Aber Fleisch is doch natürlich!', 'Natürlich? Im Stall is gar nix natürlich. Die Viecher sehn nia an Himmel!'],
+    ['Des hamma immer scho so g’macht.', 'Früher hamma a mit Kohle g’heizt. Ma derf a gscheiter werden, gö!'],
+    ['Und wo krieg i dann mei Eiweiß her?', 'Linsen, Bohnen, Erbsen, Tofu. Do steckt gnua drin, und ka Viech muass dafür leidn.'],
+    ['Aber i kauf eh nur Bio!', 'Bio hoaßt ned, dass des Schwein gern stirbt. Des wüll a ned sterbn, gnau wia du.'],
+    ['A bissl Fleisch schadt doch ned.', 'Dem Viech schadt’s scho. Dem schadt’s sogar ganz gewaltig.'],
+    ['Aber es schmeckt halt so guat!', 'Dann kost amoi unsere Erdäpfelpuffer. Danach red ma weiter!'],
+    ['Na geh, a Viech is a Viech.', 'A Viech hat Angst und Schmerz wia du und i. Des is ka Sach, Bua!']
+  ];
+  const CONVINCED = ['Na guat ... dann probier i halt was Deftiges von euch.', 'Hm. So hab i des no nie g’sehn. I probier’s.', 'Du bist streng, oba recht hast. Gib ma a Gemüse!', 'Na servas. Überredet. Aber nur heut! ... Vielleicht.'];
+  const LEO_END = ['Na schau, geht eh! Und wennst as ned magst, kriagst as Geld z’ruck. Is eh gratis!', 'Brav! Und ab morgen bringst dei Nachbarin a mit, gö!', 'Siagst. Mit Herz und Hirn geht ois.'];
+  function shuffled(a) { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; }
+  async function debate(n) {
+    S.debating = true;
+    S.leoBusy = true;
+    const g = $('gerti');
+    const standX = Math.max(60, n.x - 58);
+    g.classList.add('walking');
+    gertiAt(standX - 270);
+    await wait(2000);
+    g.classList.remove('walking');
+    let prev = null;
+    const talk = async (leo, text, ms) => {
+      if (!S.queue.includes(n) || S.phase !== 'play') throw new Error('stop');
+      while (S.paused) await wait(300);
+      if (prev && prev.isConnected) { prev.classList.remove('show'); const p = prev; setTimeout(() => p.remove(), 350); }
+      prev = leo ? say(standX, 350, text, ms, 'Leolitta') : say(n.x, QY - 162, text, ms, n.name);
+      await wait(ms);
+    };
+    try {
+      await talk(true, pick(LEO_OPEN), 3400);
+      for (const [a, b] of shuffled(DEBATE_PAIRS).slice(0, 2)) {
+        await talk(false, a, 2800);
+        await talk(true, b, 3800);
+      }
+      await talk(false, pick(CONVINCED), 3000);
+      n.wish = Math.random() < 0.65 ? 'deftig' : 'egal';
+      n.waited = 0;
+      renderWish(n);
+      S.converted = (S.converted || 0) + 1;
+      addScore(40);
+      toast('Leolitta hat a Herz g’öffnet! +40', n.name + ' probiert jetzt was Pflanzliches.');
+      await talk(true, pick(LEO_END), 3200);
+    } catch (e) { /* Runde vorbei oder Nachbar weg */ }
+    g.classList.add('walking');
+    gertiAt(-420);
+    await wait(2000);
+    g.classList.remove('walking');
+    S.leoBusy = false;
+    S.debating = false;
+    S.nextDebate = S.elapsed + 8;
+  }
+
   async function masterCook() {
     if (S.phase !== 'play' || S.busy || S.jk.leolita <= 0) return;
+    if (S.leoBusy) { toast('Leolitta diskutiert grad.', 'Gleich hat sie wieder Zeit für dich.'); return; }
     const avail = Object.keys(S.crate).filter((id) => S.crate[id] > 0);
     if (!avail.length) { toast('Die Kiste ist leer.', 'Ohne Zutaten kann auch Leolitta nix zaubern. Schick Jakob los!'); return; }
     S.jk.leolita -= 1;
+    S.leoBusy = true;
     S.busy = true;
     clearPot();
     syncButtons();
@@ -1193,7 +1259,7 @@
     cook();
     setTimeout(() => {
       say(270, 350, pick(GERTI_BYE), 3200, 'Leolitta');
-      setTimeout(() => { $('gerti').classList.add('walking'); gertiAt(-420); setTimeout(() => $('gerti').classList.remove('walking'), 2000); }, 2600);
+      setTimeout(() => { $('gerti').classList.add('walking'); gertiAt(-420); setTimeout(() => { $('gerti').classList.remove('walking'); S.leoBusy = false; }, 2000); }, 2600);
     }, 4200);
   }
 
@@ -1548,6 +1614,7 @@
   async function giveDirect(n) {
     if (S.handing || S.busy) { toast('Moment, der Captain hat grad die Hände voll.'); return; }
     const w = n.wish;
+    if (w === 'fleisch') { toast('Fleisch gibt’s bei der Radküche ned.', 'Leolitta kommt gleich und redet mit ' + n.name + '.'); return; }
     if (!WISH[w].direct) {
       toast(n.name + ' möchte ' + WISH[w].label + '.', w === 'egal' ? 'Koch irgendwas Gutes, dann bekommt ' + n.name + ' davon.' : 'Das muss man kochen: Zutaten in den Topf und abschmecken.');
       return;
@@ -1640,6 +1707,12 @@
         }
         if (!n.talkedWait && n.waited > 16 + i * 2 && Math.random() < 0.004) { n.talkedWait = true; if (S.calmUntil > S.elapsed) { if (performance.now() - lastTalk > 3500 && bubbles.children.length < 2) { lastTalk = performance.now(); n.bubble = say(n.x, QY - 162, pick(CALM_LINES), 4200, n.name); } } else maybeSay(n, 'wait'); }
       });
+    }
+
+    // Leolitta geht zu Fleisch-Wünschen
+    if (running && !S.leoBusy && !S.busy && S.elapsed > (S.nextDebate || 0)) {
+      const meat = S.queue.find((n) => n.wish === 'fleisch' && Math.abs(n.tx - n.x) < 2 && n.waited > 3);
+      if (meat) debate(meat);
     }
 
     // Warmgehaltene Portionen an die Ersten in der Schlange
@@ -1787,7 +1860,7 @@
     celebrate();
     endScreen(record ? 'Neuer Rekord!' : 'Feierabend in der Radküche!',
       `${S.served} Nachbarinnen und Nachbarn versorgt.`,
-      [`Davon hast du ${S.wishHits} Wünsche genau erfüllt, ${S.dishes} ${S.dishes === 1 ? 'Gericht' : 'Gerichte'} gekocht und ${S.flowers} Blumen gepflanzt. ${S.bees.length} Hummeln summen jetzt durch die Straße.`,
+      [`Davon hast du ${S.wishHits} Wünsche genau erfüllt, ${S.converted ? `Leolitta hat ${S.converted} ${S.converted === 1 ? 'Fleischesser' : 'Fleischesser'} zum Probieren überredet, ` : ''}${S.dishes} ${S.dishes === 1 ? 'Gericht' : 'Gerichte'} gekocht und ${S.flowers} Blumen gepflanzt. ${S.bees.length} Hummeln summen jetzt durch die Straße.`,
        `Dein Rekord: ${bestServed} Versorgte in 5 Minuten. Punkte: ${S.score}.`,
        record ? 'Des is ka Rekord, des is a Liebeserklärung ans Grätzl!' : 'Schaffst du nächstes Mal mehr? Tipp: Schau, was die meisten wollen, und koch genau das.',
        'Und das Schönste: Das geht auch in echt. Komm in die Crew!'], true);
