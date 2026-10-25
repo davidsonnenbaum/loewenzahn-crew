@@ -371,3 +371,9 @@ body.game-on .deck-btns > *{flex:0 0 auto}
 .l2{animation-delay:-1.3s}.l3{animation-delay:-2.6s}
 @keyframes leaf{0%{transform:translate(0,0) rotate(0);opacity:0}25%{opacity:1}100%{transform:translate(18px,-70px) rotate(160deg);opacity:0}}
 #leaves{transition:opacity 1s ease}
+
+/* Wünsche und Zeit */
+.wish{transition:opacity .3s ease}
+.time-pill{background:#2F5233 !important;color:#FFFFFF !important}
+.time-pill b{color:#FFFFFF}
+#queue g{cursor:pointer}

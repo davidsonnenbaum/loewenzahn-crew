@@ -344,7 +344,7 @@
     if (look.hat === 'scarf') hat = `<path d="M-14 -70 Q-15 -93 0 -93 Q15 -93 14 -70 Q12 -84 0 -86 Q-12 -84 -14 -70 Z" fill="${c}"></path>`;
     if (look.hat === 'bun') hat = `<path d="M-12 -80 Q0 -94 12 -80 Q4 -86 -12 -80 Z" fill="#4A3426"></path><circle cx="0" cy="-92" r="6" fill="#4A3426"></circle>`;
     if (look.hat === 'none') hat = `<path d="M-12 -81 Q0 -93 12 -81 Q2 -87 -12 -81 Z" fill="${look.hair}"></path>`;
-    return `<g class="bob">${legs}${body}${head}${hat}<g class="cup" opacity="0"><rect x="9" y="-50" width="9" height="10" rx="2" fill="#FFFFFF" stroke="#C9B48A" stroke-width="1"></rect><path d="M12 -53 Q10 -58 13 -62" stroke="#FFFFFF" stroke-width="1.5" fill="none" stroke-linecap="round"></path></g><ellipse class="zen" opacity="0" cx="0" cy="-97" rx="11" ry="3" fill="none" stroke="#F2B530" stroke-width="2"></ellipse><g class="bowl" opacity="0"><path d="M-26 -46 L-10 -46 Q-12 -36 -18 -36 Q-24 -36 -26 -46 Z" fill="#C97B3D"></path><path d="M-22 -52 Q-24 -58 -20 -62 M-16 -52 Q-18 -58 -14 -62" stroke="#FFFFFF" stroke-width="1.8" fill="none" stroke-linecap="round"></path></g></g>`;
+    return `<g class="bob">${legs}${body}${head}${hat}<g class="cup" opacity="0"><rect x="9" y="-50" width="9" height="10" rx="2" fill="#FFFFFF" stroke="#C9B48A" stroke-width="1"></rect><path d="M12 -53 Q10 -58 13 -62" stroke="#FFFFFF" stroke-width="1.5" fill="none" stroke-linecap="round"></path></g><ellipse class="zen" opacity="0" cx="0" cy="-97" rx="11" ry="3" fill="none" stroke="#F2B530" stroke-width="2"></ellipse><g class="wish" opacity="0"></g><g class="bowl" opacity="0"><path d="M-26 -46 L-10 -46 Q-12 -36 -18 -36 Q-24 -36 -26 -46 Z" fill="#C97B3D"></path><path d="M-22 -52 Q-24 -58 -20 -62 M-16 -52 Q-18 -58 -14 -62" stroke="#FFFFFF" stroke-width="1.8" fill="none" stroke-linecap="round"></path></g></g>`;
   }
 
   // ---------------------------------------------------------------
@@ -458,7 +458,81 @@
     };
   })();
 
-  const GOAL = 20;
+  // ---------------------------------------------------------------
+  // Wünsche der Nachbarn
+  // ---------------------------------------------------------------
+  const ROUND = 300; // Sekunden pro Runde
+  const WISH = {
+    brot:   { label: 'Brot', direct: true },
+    wasser: { label: 'Wasser oder Tee', direct: true },
+    obst:   { label: 'Obst', direct: true },
+    suppe:  { label: 'eine Suppe' },
+    deftig: { label: 'was Deftiges' },
+    suess:  { label: 'was Süßes' },
+    scharf: { label: 'was Scharfes' },
+    egal:   { label: 'egal, Hauptsache warm' }
+  };
+  const WISH_LINES = {
+    brot: ['I brauch nur a Stückl Brot, mehr ned.', 'A Scheiberl Brot, bitte. Altes is ma eh lieber.', 'Brot! Nur Brot. I bin a einfacher Mensch.'],
+    wasser: ['A Glasl Wasser tät ma schon reichen.', 'I hab an Durscht wie a Rennpferd.', 'Nur was zum Trinken, bitte.'],
+    obst: ['Hast an Apfel? I bin auf Diät. Seit 1987.', 'A Stückl Obst, für die Vitamine.', 'Was Frisches, Obst wär fein.'],
+    suppe: ['A warme Suppn, bitte, mir is so kalt.', 'A Supperl, wie bei der Oma.', 'Suppe! Des is mei Lebenselixier.'],
+    deftig: ['Was Deftiges! Mit Erdäpfeln, wenn’s geht.', 'I brauch was G’scheites im Magen.', 'Was Kräftiges, i hab heut no viel vor.'],
+    suess: ['Was Süßes, bitte, sonst werd i grantig.', 'A Nachspeis! Ohne Nachspeis is ka Tag.', 'Was Süßes für die Seele.'],
+    scharf: ['Scharf muss es sein, dass ma die Augen rinnen!', 'Was Feuriges, bitte. I bin a Feuerwehrmann.', 'Je schärfer, desto besser!'],
+    egal: ['Is ma wurscht, Hauptsach warm.', 'Ganz egal, i iss alles. Fast alles.', 'Überrasch mi!']
+  };
+  const GIVE_UP = ['Na guat, dann nimm i halt irgendwas.', 'Wurscht, i nimm, was kommt.', 'I bin ja ned anspruchsvoll. Gib, was d’ hast.'];
+  const WISH_HAPPY = ['Genau des hab i ma g’wünscht!', 'Woher hast g’wusst, was i will?', 'Du hörst ja richtig zu, Captain!', 'Treffer! Mitten ins Herz.'];
+  function pickWish() {
+    const mo = new Date().getMonth() + 1;
+    const cold = [10, 11, 12, 1, 2, 3].includes(mo);
+    const w = { brot: 2, wasser: 2, obst: 1.5, suppe: cold ? 4 : 2, deftig: cold ? 3 : 2, suess: 1.6, scharf: 1, egal: 1.4 };
+    const total = Object.values(w).reduce((a, b) => a + b, 0);
+    let r = Math.random() * total;
+    for (const k in w) { r -= w[k]; if (r <= 0) return k; }
+    return 'egal';
+  }
+  function wishIconInner(w) {
+    if (w === 'brot') return ICONS.brot;
+    if (w === 'wasser') return ICONS.wasser;
+    if (w === 'obst') return ICONS.aepfel;
+    if (w === 'deftig') return ICONS.kartoffeln;
+    if (w === 'suppe') return '<path d="M6 24 L42 24 Q40 42 24 42 Q8 42 6 24 Z" fill="#C97B3D"></path><ellipse cx="24" cy="24" rx="18" ry="4" fill="#E8A35A"></ellipse><path d="M16 18 Q13 12 16 6 M24 18 Q21 12 24 6 M32 18 Q29 12 32 6" fill="none" stroke="#9CC7DF" stroke-width="3" stroke-linecap="round"></path>';
+    if (w === 'suess') return '<path d="M10 26 L38 26 L34 42 L14 42 Z" fill="#E7A6A1"></path><path d="M8 26 Q10 12 24 12 Q38 12 40 26 Z" fill="#FBF6EA" stroke="#E7A6A1" stroke-width="2"></path><circle cx="24" cy="9" r="4.5" fill="#D7322B"></circle>';
+    if (w === 'scharf') return '<path d="M14 14 Q8 30 22 40 Q34 46 40 38 Q28 38 22 28 Q18 20 20 14 Z" fill="#E0301E"></path><path d="M16 14 Q16 6 24 6" fill="none" stroke="#4E9A45" stroke-width="3.5" stroke-linecap="round"></path>';
+    return '<text x="24" y="31" text-anchor="middle" font-family="Nunito, sans-serif" font-weight="800" font-size="15" fill="#6B5A4A">egal</text>';
+  }
+  function renderWish(n) {
+    const g = n.el.querySelector('.wish');
+    if (!g) return;
+    const direct = WISH[n.wish].direct;
+    g.innerHTML = `<rect x="-22" y="-150" width="44" height="40" rx="12" fill="#FFFFFF" stroke="${direct ? '#2F5233' : '#C97B3D'}" stroke-width="${direct ? 3.5 : 2.5}"></rect><path d="M-5 -110 L0 -103 L5 -110 Z" fill="#FFFFFF"></path><g transform="translate(-16 -146) scale(.67)">${wishIconInner(n.wish)}</g>${direct ? '<circle cx="18" cy="-146" r="7" fill="#2F5233"></circle><path d="M15 -146 L17.5 -143.5 L21.5 -149" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>' : ''}`;
+    g.setAttribute('opacity', '1');
+  }
+  function dishCats(pot) {
+    const ing = [...new Set(pot.filter((id) => ING[id]))];
+    const fruit = ing.filter((id) => ING[id].type === 'fruit');
+    const savory = ing.filter((id) => !['fruit', 'bread'].includes(ING[id].type));
+    const cats = new Set(['egal']);
+    if (fruit.length && !savory.length) cats.add('suess');
+    if (savory.length || (ing.includes('brot') && !fruit.length)) {
+      if (pot.includes('wasser')) cats.add('suppe');
+      if (ing.some((id) => ING[id].type === 'legume') || ing.includes('kartoffeln') || pot.includes('paprikapulver')) cats.add('deftig');
+    }
+    if (pot.includes('chili') || pot.includes('curry')) cats.add('scharf');
+    return cats;
+  }
+  function catNames(cats) {
+    const names = { suppe: 'Suppe', deftig: 'Deftiges', suess: 'Süßes', scharf: 'Scharfes' };
+    const list = [...cats].filter((c) => names[c]).map((c) => names[c]);
+    return list.length ? list.join(', ') : 'nix Besonderes';
+  }
+  function fmtTime(s) {
+    s = Math.max(0, Math.ceil(s));
+    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
+
   const QUEUE_MAX = 12;
   const QX0 = 410, QGAP = 64, QY = 470;
   const HOUSES = [
@@ -483,7 +557,7 @@
     return {
       phase: 'ready', served: 0, seeds: 0, score: 0, flowers: 0, roofs: [0, 0, 0, 0], green: [false, false, false, false],
       crate: newCrate(), pot: [], queue: [], leaving: [], bees: [], targets: [], spawnIn: 1.5, elapsed: 0, busy: false,
-      refilling: 0, paused: false, dishes: 0, nextId: 1, warm: 0, banterIn: 10, jakob: 'home', jk: { leolita: 1, nif: 1 }, streak: 0, masterNext: null, calmUntil: 0, nifBusy: false
+      refilling: 0, paused: false, dishes: 0, nextId: 1, warm: [], banterIn: 10, jakob: 'home', jk: { leolita: 1, nif: 1 }, wishHits: 0, givenDirect: 0, streak: 0, masterNext: null, calmUntil: 0, nifBusy: false
     };
   }
 
@@ -535,7 +609,7 @@
     if (!force && now - lastTalk < 3500) return;
     if (!force && bubbles.children.length >= 2) return;
     lastTalk = now;
-    n.bubble = say(n.x, QY - 108, pick(LINES[n.humor][kind]), 4600, n.name);
+    n.bubble = say(n.x, QY - 162, pick(LINES[n.humor][kind]), 4600, n.name);
   }
 
   // ----- Nachbarn -----
@@ -544,11 +618,18 @@
     const g = mk('g', {});
     g.innerHTML = personMarkup(look);
     queueLayer.appendChild(g);
-    const n = { id: S.nextId++, el: g, x: 1260, tx: 0, humor: pick(['grant', 'schmaeh', 'jiddisch']), name: pick(NAMES), waited: 0, talkedWait: false };
+    const n = { id: S.nextId++, el: g, x: 1260, tx: 0, humor: pick(['grant', 'schmaeh', 'jiddisch']), name: pick(NAMES), waited: 0, talkedWait: false, wish: pickWish(), gaveUp: false };
     S.queue.push(n);
+    renderWish(n);
     if (S.calmUntil > S.elapsed) { g.querySelector('.cup').setAttribute('opacity', '1'); g.querySelector('.zen').setAttribute('opacity', '1'); }
     layoutQueue();
-    if (Math.random() < 0.55 || S.queue.length <= 2) setTimeout(() => { if (S.queue.includes(n)) maybeSay(n, 'arrive'); }, 1600);
+    setTimeout(() => {
+      if (!S.queue.includes(n)) return;
+      if (Math.random() < 0.7 || S.queue.length <= 2) {
+        const now = performance.now();
+        if (now - lastTalk > 2200 && bubbles.children.length < 3) { lastTalk = now; n.bubble = say(n.x, QY - 162, pick(WISH_LINES[n.wish]), 4200, n.name); }
+      } else maybeSay(n, 'arrive');
+    }, 1600);
     if (S.queue.length >= QUEUE_MAX) lose();
   }
   function layoutQueue() {
@@ -864,7 +945,7 @@
     S.pot = [];
     renderPotList();
     renderPotVisual();
-    serve(result, color);
+    serve(result, color, dishCats(potCopy));
   }
 
   function spoonsSvg(n, size) {
@@ -907,13 +988,20 @@
     showJuryPop.t = setTimeout(() => pop.classList.remove('show'), 7000);
   }
 
-  async function serve(r, color) {
+  async function serve(r, color, cats) {
     S.dishes += 1;
     const seeds = [0, 1, 3, 5][r.spoons];
-    const portions = [0, 1, 2, 4][r.spoons];
-    const feeds = Math.min(portions, S.queue.length);
-    const kept = Math.max(0, Math.min(6 - S.warm, portions - feeds));
-    let points = [0, 20, 50, 100][r.spoons] + (r.dish ? 30 : 0);
+    const portions = [0, 2, 4, 6][r.spoons];
+    let matched = [];
+    if (portions) {
+      const want = S.queue.filter((n) => n.wish !== 'egal' && cats.has(n.wish));
+      const easy = S.queue.filter((n) => n.wish === 'egal');
+      matched = want.concat(easy).slice(0, portions);
+    }
+    const feeds = matched.length;
+    const exact = matched.filter((n) => n.wish !== 'egal').length;
+    const kept = Math.max(0, Math.min(6 - S.warm.length, portions - feeds));
+    let points = [0, 20, 50, 100][r.spoons] + (r.dish ? 30 : 0) + exact * 20;
     const master = S.masterNext;
     S.masterNext = null;
     if (master) points = Math.round(points / 2);
@@ -933,7 +1021,7 @@
     v.append(ul);
     const rw = document.createElement('p'); rw.className = 'v-reward';
     rw.textContent = r.spoons
-      ? `${portions} ${portions === 1 ? 'Portion' : 'Portionen'}` + (feeds ? `, ${feeds} gleich ausgegeben` : '') + (kept > 0 ? `, ${kept} bleiben warm` : '') + ` · +${seeds} Samen · +${points} Punkte`
+      ? `Passt zu: ${catNames(cats)} · ${portions} Portionen` + (feeds ? `, ${feeds} ${feeds === 1 ? 'Wunsch' : 'Wünsche'} erfüllt` : ', aber kein passender Wunsch in der Schlange') + (kept > 0 ? `, ${kept} bleiben warm` : '') + ` · +${seeds} Samen · +${points} Punkte`
       : 'Keine Samen diesmal. Probier eine andere Reihenfolge!';
     v.append(rw);
     if (master) { const g = document.createElement('p'); g.className = 'v-master'; g.textContent = 'Gekocht von Leolitta. Ihr Rezept mit allen Erklärungen steht unten im Rezeptbuch.'; v.prepend(g); }
@@ -943,16 +1031,24 @@
     if (Math.random() < 0.5) setTimeout(() => say(60, 340, MIRA_REACT[r.spoons], 3200, 'Mira'), 1600);
 
     if (feeds) {
-      const front = S.queue.slice(0, feeds);
-      for (let i = 0; i < front.length; i++) {
-        await handOver(front[i], color);
-        if (i === 0) setTimeout(() => { if (front[0].el.isConnected) say(front[0].x, QY - 108, pick(LINES[front[0].humor]['r' + r.spoons]), 4000, front[0].name); }, 700);
+      S.handing = true;
+      for (let i = 0; i < matched.length; i++) {
+        const n = matched[i];
+        if (!S.queue.includes(n)) continue;
+        await handOver(n, color);
+        if (i === 0) {
+          const line = n.wish !== 'egal' && r.spoons >= 2 ? pick(WISH_HAPPY) : pick(LINES[n.humor]['r' + r.spoons]);
+          setTimeout(() => { if (n.el.isConnected) say(n.x, QY - 162, line, 4000, n.name); }, 700);
+        }
+        feedList([n], r.spoons, true);
       }
-      feedFront(feeds, r.spoons, true);
+      S.handing = false;
+    } else if (S.queue.length && r.spoons > 0) {
+      setTimeout(() => { const n = S.queue[0]; if (n) say(n.x, QY - 162, 'Des hab i aber ned bestellt!', 3200, n.name); }, 1200);
     } else if (S.queue.length && r.spoons === 0) {
       setTimeout(() => maybeSay(S.queue[0], 'r0', true), 1200);
     }
-    S.warm += kept;
+    for (let k = 0; k < kept; k++) S.warm.push({ cats, color });
     if (seeds) setTimeout(() => toast(`+${seeds} Samen!`, 'Klick auf die Wiese vorne oder auf ein Haus, um zu pflanzen.'), 600);
     S.busy = false;
     syncButtons();
@@ -1007,7 +1103,9 @@
       [false, true].forEach((garlic) => [false, true].forEach((paprika) => SPICE_SETS.forEach((spices) => [false, true].forEach((herbs) => [false, true].forEach((lemon) => {
         const pot = buildPot(items, { garlic, paprika, spices, herbs, lemon, water: true, soup: items.length >= 2 });
         const r = judge(pot);
-        const score = r.spoons * 1000 + (r.dish ? 300 : 0) + r.pts * 10 - pot.length;
+        const cats = dishCats(pot);
+        const fans = S.queue.filter((n) => n.wish !== 'egal' && cats.has(n.wish)).length;
+        const score = r.spoons * 1000 + fans * 400 + (r.dish ? 300 : 0) + r.pts * 10 - pot.length;
         if (!best || score > best.score) best = { pot, r, score };
       })))));
     });
@@ -1172,18 +1270,21 @@
     $('leaves').setAttribute('opacity', '1');
     updateHud();
     const list = S.queue.slice();
+    const teaServed = [];
     for (let i = 0; i < list.length; i++) {
       const n = list[i];
       if (!n.el.isConnected || !S.queue.includes(n)) continue;
       await walkTo(nf, n.x + 34, 500);
       const cup = n.el.querySelector('.cup');
       if (cup) cup.setAttribute('opacity', '1');
+      if (n.wish === 'wasser') teaServed.push(n);
       const zen = n.el.querySelector('.zen');
       if (zen) zen.setAttribute('opacity', '1');
       if (i === 1) say(n.x + 30, 360, pick(NIF_POUR), 2400, 'Nif');
       if (i === 2) setTimeout(() => { if (n.el.isConnected) say(n.x, QY - 108, pick(CALM_LINES), 3200, n.name); }, 500);
     }
-    toast('Tee-Ruhe für eine Minute!', 'Die Leute schweben ohne Erwartungen, und es kommen weniger nach.');
+    if (teaServed.length) { feedList(teaServed, 3, true); addScore(teaServed.length * 25); }
+    toast('Tee-Ruhe für eine Minute!', teaServed.length ? `${teaServed.length} Durstige sind versorgt, und alle anderen schweben ohne Erwartungen.` : 'Die Leute schweben ohne Erwartungen, und es kommen weniger nach.');
     await wait(800);
     say(Math.min(1100, (S.queue.length ? S.queue[S.queue.length - 1].x : 600) + 30), 360, pick(NIF_BYE), 3200, 'Nif');
     await wait(1200);
@@ -1205,11 +1306,14 @@
     }
   }
 
-  function feedFront(count, spoons, handed) {
-    const fed = S.queue.splice(0, count);
+  function feedList(list, spoons, handed) {
+    const fed = list.filter((n) => S.queue.includes(n));
+    fed.forEach((n) => S.queue.splice(S.queue.indexOf(n), 1));
     fed.forEach((n, i) => {
+      if (n.wish !== 'egal') S.wishHits += 1;
+      const wg = n.el.querySelector('.wish'); if (wg) wg.setAttribute('opacity', '0');
       n.el.querySelector('.bowl').setAttribute('opacity', '1');
-      if (!handed && i === 0 && Math.random() < 0.6) setTimeout(() => say(n.x, QY - 108, pick(LINES[n.humor]['r' + spoons]), 4000, n.name), 200);
+      if (!handed && i === 0 && Math.random() < 0.6) setTimeout(() => say(n.x, QY - 162, pick(LINES[n.humor]['r' + spoons]), 4000, n.name), 200);
       n.leaveT = 0.4 + i * 0.35;
       n.ty = rand(500, 540);
       n.tx = rand(QX0 + 40, 1180);
@@ -1219,7 +1323,6 @@
     if (Math.floor(S.served / 7) > (S.nifMark || 0)) { S.nifMark = Math.floor(S.served / 7); earnJoker('nif', S.served + ' Nachbarn versorgt!'); }
     layoutQueue();
     updateHud();
-    if (S.served >= GOAL) setTimeout(win, 1600);
   }
 
   function addScore(n) {
@@ -1318,10 +1421,45 @@
     if (y >= 410) toast('Pflanz auf der Wiese vorne oder auf einem Haus.', 'Auf der Fahrbahn stehen die Nachbarn an.');
     else toast('Klick auf die Wiese vorne oder auf ein Haus.', 'Im Himmel wächst leider nichts.');
   }
+  function neighborAt(x, y) {
+    return S.queue.find((n) => Math.abs(n.x - x) < 28 && y > QY - 155 && y < QY + 8);
+  }
+  async function giveDirect(n) {
+    if (S.handing || S.busy) { toast('Moment, der Captain hat grad die Hände voll.'); return; }
+    const w = n.wish;
+    if (!WISH[w].direct) {
+      toast(n.name + ' möchte ' + WISH[w].label + '.', w === 'egal' ? 'Koch irgendwas Gutes, dann bekommt ' + n.name + ' davon.' : 'Das muss man kochen: Zutaten in den Topf und abschmecken.');
+      return;
+    }
+    let color = '#9CC7DF';
+    if (w === 'brot') {
+      if (!S.crate.brot) { toast('Kein Brot in der Kiste.', 'Schick Jakob auf Rettungstour!'); return; }
+      S.crate.brot -= 1; if (S.crate.brot <= 0) delete S.crate.brot; color = '#C8925A';
+    }
+    if (w === 'obst') {
+      const f = Object.keys(S.crate).find((id) => ING[id].type === 'fruit');
+      if (!f) { toast('Kein Obst in der Kiste.', 'Schick Jakob auf Rettungstour!'); return; }
+      S.crate[f] -= 1; if (S.crate[f] <= 0) delete S.crate[f]; color = ING[f].color;
+    }
+    renderCrate();
+    S.handing = true;
+    Music.sfx('plop');
+    await handOver(n, color);
+    S.givenDirect += 1;
+    feedList([n], 3, true);
+    addScore(25);
+    say(n.x, QY - 162, pick(WISH_HAPPY), 3200, n.name);
+    S.handing = false;
+    updateHud();
+  }
   svg.addEventListener('click', (e) => {
     const pt = svg.createSVGPoint();
     pt.x = e.clientX; pt.y = e.clientY;
     const loc = pt.matrixTransform(svg.getScreenCTM().inverse());
+    if (S.phase === 'play' && !S.paused) {
+      const n = neighborAt(loc.x, loc.y);
+      if (n) { giveDirect(n); return; }
+    }
     plantAt(loc.x, loc.y);
   });
 
@@ -1353,6 +1491,8 @@
 
     if (running) {
       S.elapsed += dt;
+      if (S.elapsed >= ROUND) { timeUp(); }
+      if (!S.warned && ROUND - S.elapsed < 30) { S.warned = true; toast('Noch 30 Sekunden!', 'Schnell, wer noch was will?'); say(342, 330, 'Endspurt, Crew!', 2600, 'Captain Dave'); }
       // Neue Nachbarn: am Anfang gemütlich. Je mehr versorgt sind und je mehr blüht,
       // desto mehr spricht es sich im Grätzl herum, und desto schneller kommen Leute.
       S.spawnIn -= dt;
@@ -1373,21 +1513,35 @@
       // Ungeduld
       S.queue.forEach((n, i) => {
         n.waited += dt;
-        if (!n.talkedWait && n.waited > 16 + i * 2 && Math.random() < 0.004) { n.talkedWait = true; if (S.calmUntil > S.elapsed) { if (performance.now() - lastTalk > 3500 && bubbles.children.length < 2) { lastTalk = performance.now(); n.bubble = say(n.x, QY - 108, pick(CALM_LINES), 4200, n.name); } } else maybeSay(n, 'wait'); }
+        if (!n.gaveUp && n.wish !== 'egal' && n.waited > 50) {
+          n.gaveUp = true; n.wish = 'egal'; renderWish(n);
+          if (bubbles.children.length < 3) n.bubble = say(n.x, QY - 162, pick(GIVE_UP), 3400, n.name);
+        }
+        if (!n.talkedWait && n.waited > 16 + i * 2 && Math.random() < 0.004) { n.talkedWait = true; if (S.calmUntil > S.elapsed) { if (performance.now() - lastTalk > 3500 && bubbles.children.length < 2) { lastTalk = performance.now(); n.bubble = say(n.x, QY - 162, pick(CALM_LINES), 4200, n.name); } } else maybeSay(n, 'wait'); }
       });
     }
 
     // Warmgehaltene Portionen an die Ersten in der Schlange
-    if (running && S.warm > 0 && !S.handing && S.queue.length && Math.abs(S.queue[0].tx - S.queue[0].x) < 2) {
+    if (running && S.warm.length && !S.handing && !S.busy) {
       S.warmT = (S.warmT || 0) + dt;
       if (S.warmT > 0.8) {
-        S.warmT = 0; S.warm -= 1; S.handing = true;
-        const n = S.queue[0];
-        handOver(n, '#C9A26B').then(() => {
-          if (S.queue[0] === n) feedFront(1, 2, false);
-          S.handing = false;
-          updateHud();
-        });
+        S.warmT = 0;
+        let hit = null, wi = -1;
+        for (const n of S.queue) {
+          if (Math.abs(n.tx - n.x) > 2) continue;
+          wi = S.warm.findIndex((w) => w.cats.has(n.wish));
+          if (wi >= 0) { hit = n; break; }
+        }
+        if (hit) {
+          const portion = S.warm.splice(wi, 1)[0];
+          S.handing = true;
+          handOver(hit, portion.color).then(() => {
+            feedList([hit], 2, false);
+            addScore(hit.wish !== 'egal' ? 30 : 10);
+            S.handing = false;
+            updateHud();
+          });
+        }
       }
     }
 
@@ -1428,7 +1582,7 @@
       b.el.setAttribute('transform', `translate(${b.x.toFixed(1)} ${(b.y + wob).toFixed(1)}) scale(${b.face} 1)`);
     }
 
-    if (running) { updateQueueBar(); if (S.calmUntil) { const c = Math.max(0, Math.ceil(S.calmUntil - S.elapsed)); $('m-calm').hidden = !c; $('m-calm-s').textContent = c; } }
+    if (running) { $('m-time').textContent = fmtTime(ROUND - S.elapsed); updateQueueBar(); if (S.calmUntil) { const c = Math.max(0, Math.ceil(S.calmUntil - S.elapsed)); $('m-calm').hidden = !c; $('m-calm-s').textContent = c; } }
     requestAnimationFrame(frame);
   }
 
@@ -1442,8 +1596,9 @@
   }
   function updateHud() {
     $('m-served').textContent = S.served;
+    $('m-time').textContent = fmtTime(ROUND - (S.elapsed || 0));
     $('m-seeds').textContent = S.seeds;
-    $('m-warm').textContent = S.warm;
+    $('m-warm').textContent = S.warm.length;
     $('m-flowers').textContent = S.flowers;
     $('m-bees').textContent = S.bees.length;
     $('m-score').textContent = S.score;
@@ -1501,14 +1656,19 @@
     $('ov-crew').hidden = !crew;
     $('overlay').hidden = false;
   }
-  function win() {
+  let bestServed = 0;
+  try { bestServed = Number(localStorage.getItem('rk-best-served') || 0); } catch (e) { bestServed = 0; }
+  function timeUp() {
     if (S.phase !== 'play') return;
     Music.stop(); Music.sfx('win');
-    addScore(300);
+    const record = S.served > bestServed;
+    if (record) { bestServed = S.served; try { localStorage.setItem('rk-best-served', String(bestServed)); } catch (e) { /* egal */ } }
     celebrate();
-    endScreen('Gewonnen!', 'Das ganze Grätzl ist satt und glücklich.',
-      [`Du hast ${S.served} Nachbarinnen und Nachbarn mit ${S.dishes} Gerichten versorgt, ${S.flowers} Blumen gepflanzt, und ${S.bees.length} Hummeln summen jetzt durch die Straße.`,
-       `Deine Punkte: ${S.score}. Dein Rekord: ${best}.`,
+    endScreen(record ? 'Neuer Rekord!' : 'Feierabend in der Radküche!',
+      `${S.served} Nachbarinnen und Nachbarn versorgt.`,
+      [`Davon hast du ${S.wishHits} Wünsche genau erfüllt, ${S.dishes} ${S.dishes === 1 ? 'Gericht' : 'Gerichte'} gekocht und ${S.flowers} Blumen gepflanzt. ${S.bees.length} Hummeln summen jetzt durch die Straße.`,
+       `Dein Rekord: ${bestServed} Versorgte in 5 Minuten. Punkte: ${S.score}.`,
+       record ? 'Des is ka Rekord, des is a Liebeserklärung ans Grätzl!' : 'Schaffst du nächstes Mal mehr? Tipp: Schau, was die meisten wollen, und koch genau das.',
        'Und das Schönste: Das geht auch in echt. Komm in die Crew!'], true);
   }
   function lose() {
@@ -1517,7 +1677,7 @@
     const n = S.queue[S.queue.length - 1];
     if (n) say(n.x, QY - 108, pick(LINES.grant.r0), 3000, n.name);
     endScreen('Die Schlange reicht bis ans Ende der Straße.', 'Na servas, des war heut a harter Tag.',
-      [`Du hast ${S.served} von ${GOAL} Nachbarn versorgt. Tipp: Je besser das Gericht, desto mehr Leute werden auf einmal satt. Und was warm im Topf bleibt, geht an die Nächsten.`,
+      [`Du hast ${S.served} Nachbarn versorgt, nach ${fmtTime(S.elapsed)} Minuten. Tipp: Schau auf die Wünsche über den Köpfen. Brot, Wasser und Obst gibst du direkt, indem du auf die Person tippst. Und ein Topf Suppe macht alle Suppenfans auf einmal glücklich.`,
        `Deine Punkte: ${S.score}. Dein Rekord: ${best}.`,
        'Aber morgen is a neuer Tag. Und gerettet wird immer.'], false);
   }
