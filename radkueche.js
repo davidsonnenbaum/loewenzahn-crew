@@ -104,7 +104,12 @@
   // Die Jury. Das Küchenwissen steckt in diesen Regeln.
   // ---------------------------------------------------------------
   const DISHES = [
+    { name: 'Vegane Erdäpfelpuffer', need: ['kartoffeln', 'oel', 'zwiebel'], not: ['wasser'] },
     { name: 'Erdäpfelgulasch', need: ['kartoffeln', 'zwiebel', 'paprikapulver', 'wasser'] },
+    { name: 'Marokkanischer Linseneintopf', need: ['linsen', 'wasser'], any: ['zimt', 'chili'] },
+    { name: 'Französische Linsen', need: ['linsen', 'wasser', 'kraeuter'], any: ['karotten', 'lauch', 'sellerie'] },
+    { name: 'Marokkanischer Kürbistopf', need: ['kuerbis', 'wasser', 'zimt'] },
+    { name: 'Antipasti', need: ['oel', 'knoblauch', 'kraeuter'], any: ['zucchini', 'paprika', 'pilze', 'tomaten'], not: ['wasser'] },
     { name: 'Pilzgulasch', need: ['pilze', 'zwiebel', 'paprikapulver'] },
     { name: 'Kürbiscremesuppe', need: ['kuerbis', 'zwiebel', 'wasser'] },
     { name: 'Linseneintopf', need: ['linsen', 'wasser'], any: ['karotten', 'sellerie', 'lauch', 'kartoffeln'] },
@@ -200,6 +205,8 @@
         if (!anyVeg && !has('brot') && distinct.length < 2) minus(1, 'Viel Wasser für wenig Gemüse, das wird eher eine dünne Brühe.');
       } else if (hasLegume) {
         minus(3, 'Linsen ohne Wasser? Da beißt man auf Kieselsteine.');
+      } else if (hardCount && distinct.includes('kartoffeln') && idx('oel') === 0 && hardCount === 1) {
+        plus(1, 'Erdäpfel ohne Wasser direkt ins heiße Öl, so werden’s knusprige Puffer.');
       } else if (hardCount) {
         minus(2, NAME(distinct.find((id) => ING[id].type === 'hard')) + ' ohne Flüssigkeit brennen an, bevor sie weich sind.');
       }
@@ -320,7 +327,7 @@
     }
   };
   const CAPTAIN_LINES = ['Ahoi, Nachbarschaft! Heute gibt’s Gerettetes!', 'Gleich geht’s los, der Topf wird schon warm!'];
-  const NAMES = ['Frau Novak', 'Herr Huber', 'Oma Gerti', 'Herr Yilmaz', 'Frau Horvath', 'Herr Pichler', 'Tante Mitzi', 'Herr Kovač', 'Frau Sommer', 'Opa Ferdl', 'Frau Steiner', 'Herr Adler', 'Frau Weiss', 'Herr Berger', 'Frau Popović', 'Herr Brunner', 'Frau Lehner', 'Herr Schwarz'];
+  const NAMES = ['Frau Novak', 'Herr Huber', 'Oma Resi', 'Herr Yilmaz', 'Frau Horvath', 'Herr Pichler', 'Tante Mitzi', 'Herr Kovač', 'Frau Sommer', 'Opa Ferdl', 'Frau Steiner', 'Herr Adler', 'Frau Weiss', 'Herr Berger', 'Frau Popović', 'Herr Brunner', 'Frau Lehner', 'Herr Schwarz'];
   const SKIN = ['#E8B98E', '#C69468', '#8A5A3C', '#F1C9A5', '#A86B45', '#5C3A24'];
   const SHIRT = ['#E7A6A1', '#5E7F5A', '#C97B3D', '#9CC7DF', '#7B5BB5', '#F2B530', '#2F5233', '#B8432F'];
   const HATS = ['none', 'beanie', 'cap', 'hut', 'scarf', 'bun', 'none'];
@@ -337,7 +344,7 @@
     if (look.hat === 'scarf') hat = `<path d="M-14 -70 Q-15 -93 0 -93 Q15 -93 14 -70 Q12 -84 0 -86 Q-12 -84 -14 -70 Z" fill="${c}"></path>`;
     if (look.hat === 'bun') hat = `<path d="M-12 -80 Q0 -94 12 -80 Q4 -86 -12 -80 Z" fill="#4A3426"></path><circle cx="0" cy="-92" r="6" fill="#4A3426"></circle>`;
     if (look.hat === 'none') hat = `<path d="M-12 -81 Q0 -93 12 -81 Q2 -87 -12 -81 Z" fill="${look.hair}"></path>`;
-    return `<g class="bob">${legs}${body}${head}${hat}<g class="bowl" opacity="0"><path d="M-26 -46 L-10 -46 Q-12 -36 -18 -36 Q-24 -36 -26 -46 Z" fill="#C97B3D"></path><path d="M-22 -52 Q-24 -58 -20 -62 M-16 -52 Q-18 -58 -14 -62" stroke="#FFFFFF" stroke-width="1.8" fill="none" stroke-linecap="round"></path></g></g>`;
+    return `<g class="bob">${legs}${body}${head}${hat}<g class="cup" opacity="0"><rect x="9" y="-50" width="9" height="10" rx="2" fill="#FFFFFF" stroke="#C9B48A" stroke-width="1"></rect><path d="M12 -53 Q10 -58 13 -62" stroke="#FFFFFF" stroke-width="1.5" fill="none" stroke-linecap="round"></path></g><ellipse class="zen" opacity="0" cx="0" cy="-97" rx="11" ry="3" fill="none" stroke="#F2B530" stroke-width="2"></ellipse><g class="bowl" opacity="0"><path d="M-26 -46 L-10 -46 Q-12 -36 -18 -36 Q-24 -36 -26 -46 Z" fill="#C97B3D"></path><path d="M-22 -52 Q-24 -58 -20 -62 M-16 -52 Q-18 -58 -14 -62" stroke="#FFFFFF" stroke-width="1.8" fill="none" stroke-linecap="round"></path></g></g>`;
   }
 
   // ---------------------------------------------------------------
@@ -476,7 +483,7 @@
     return {
       phase: 'ready', served: 0, seeds: 0, score: 0, flowers: 0, roofs: [0, 0, 0, 0], green: [false, false, false, false],
       crate: newCrate(), pot: [], queue: [], leaving: [], bees: [], targets: [], spawnIn: 1.5, elapsed: 0, busy: false,
-      refilling: 0, paused: false, dishes: 0, nextId: 1, warm: 0, banterIn: 10, jakob: 'home', jokers: 1, streak: 0, masterNext: null
+      refilling: 0, paused: false, dishes: 0, nextId: 1, warm: 0, banterIn: 10, jakob: 'home', jk: { leolita: 1, stefan: 1, nif: 1 }, streak: 0, masterNext: null, helpers: [], helperDishes: 0, calmUntil: 0, stefanMark: 0, nifBusy: false
     };
   }
 
@@ -539,6 +546,7 @@
     queueLayer.appendChild(g);
     const n = { id: S.nextId++, el: g, x: 1260, tx: 0, humor: pick(['grant', 'schmaeh', 'jiddisch']), name: pick(NAMES), waited: 0, talkedWait: false };
     S.queue.push(n);
+    if (S.calmUntil > S.elapsed) { g.querySelector('.cup').setAttribute('opacity', '1'); g.querySelector('.zen').setAttribute('opacity', '1'); }
     layoutQueue();
     if (Math.random() < 0.55 || S.queue.length <= 2) setTimeout(() => { if (S.queue.includes(n)) maybeSay(n, 'arrive'); }, 1600);
     if (S.queue.length >= QUEUE_MAX) lose();
@@ -719,8 +727,12 @@
     $('clear').disabled = !playing || !S.pot.length;
     $('refill').disabled = S.phase !== 'play' || S.refilling > 0 || S.paused;
     $('pause').disabled = S.phase !== 'play';
-    $('master').disabled = !playing || S.jokers <= 0;
-    $('jokers').textContent = '(' + S.jokers + ')';
+    $('call-leolita').disabled = !playing || S.jk.leolita <= 0;
+    $('call-stefan').disabled = S.phase !== 'play' || S.paused || S.jk.stefan <= 0 || S.helpers.length > 0;
+    $('call-nif').disabled = S.phase !== 'play' || S.paused || S.jk.nif <= 0 || S.nifBusy || S.calmUntil > S.elapsed;
+    $('jk-leolita').textContent = '(' + S.jk.leolita + ')';
+    $('jk-stefan').textContent = '(' + S.jk.stefan + ')';
+    $('jk-nif').textContent = '(' + S.jk.nif + ')';
     $('pause').textContent = S.paused ? 'Weiter' : 'Pause';
   }
   function addToPot(id, fromEl) {
@@ -900,14 +912,16 @@
   async function serve(r, color) {
     S.dishes += 1;
     const seeds = [0, 1, 3, 5][r.spoons];
-    const portions = [0, 1, 2, 4][r.spoons];
+    const helping = S.helperDishes > 0 && r.spoons > 0;
+    const portions = [0, 1, 2, 4][r.spoons] + (helping ? 2 : 0);
+    if (helping) { S.helperDishes -= 1; if (S.helperDishes === 0) setTimeout(helpersDone, 3200); }
     const feeds = Math.min(portions, S.queue.length);
     const kept = Math.max(0, Math.min(6 - S.warm, portions - feeds));
     let points = [0, 20, 50, 100][r.spoons] + (r.dish ? 30 : 0);
     const master = S.masterNext;
     S.masterNext = null;
     if (master) points = Math.round(points / 2);
-    if (!master && r.spoons === 3) { S.streak += 1; if (S.streak % 3 === 0) setTimeout(() => earnJoker('Drei Gerichte mit 3 Kochlöffeln!'), 3000); }
+    if (!master && r.spoons === 3) { S.streak += 1; if (S.streak % 3 === 0) setTimeout(() => earnJoker('leolita', 'Drei Gerichte mit 3 Kochlöffeln!'), 3000); }
     S.seeds += seeds;
     addScore(points);
     Music.sfx(r.spoons >= 2 ? 'ding' : 'meh');
@@ -926,10 +940,10 @@
       ? `${portions} ${portions === 1 ? 'Portion' : 'Portionen'}` + (feeds ? `, ${feeds} gleich ausgegeben` : '') + (kept > 0 ? `, ${kept} bleiben warm` : '') + ` · +${seeds} Samen · +${points} Punkte`
       : 'Keine Samen diesmal. Probier eine andere Reihenfolge!';
     v.append(rw);
-    if (master) { const g = document.createElement('p'); g.className = 'v-master'; g.textContent = 'Gekocht von Oma Gerti. Ihr Rezept mit allen Erklärungen steht unten im Rezeptbuch.'; v.prepend(g); }
+    if (master) { const g = document.createElement('p'); g.className = 'v-master'; g.textContent = 'Gekocht von Leolita. Ihr Rezept mit allen Erklärungen steht unten im Rezeptbuch.'; v.prepend(g); }
     showJuryPop(r);
 
-    say(342, 330, master ? pick(['Danke, Oma Gerti! Des war a Lehrstunde.', 'Oma Gerti, du bist a Legende!', 'I glaub, i muss no viel lernen.']) : pick(CAPTAIN_JOKES[r.spoons]), 3800, 'Captain Dave');
+    say(342, 330, master ? pick(['Danke, Leolita! Des war a Lehrstunde.', 'Leolita, du bist a Legende!', 'I glaub, i muss no viel lernen.']) : pick(CAPTAIN_JOKES[r.spoons]), 3800, 'Captain Dave');
     if (Math.random() < 0.5) setTimeout(() => say(60, 340, MIRA_REACT[r.spoons], 3200, 'Mira'), 1600);
 
     if (feeds) {
@@ -951,7 +965,7 @@
   }
 
   // ---------------------------------------------------------------
-  // Bonus: Oma Gerti, die Meisterköchin aus dem Hof
+  // Bonus: Leolita, die Meisterköchin aus dem Hof
   // ---------------------------------------------------------------
   const SPICE_SETS = [[], ['kuemmel'], ['majoran'], ['curry'], ['muskat'], ['kuemmel', 'majoran'], ['curry', 'muskat'], ['pfeffer']];
   function buildPot(items, o) {
@@ -1037,26 +1051,28 @@
     };
     return why[id] || NAME(id) + '.';
   }
-  const GERTI_HELLO = ['Lass mi amoi, Bub! Die Oma zeigt dir, wie’s geht.', 'Platz da, jetzt kocht die Gerti!', 'Na geh, Captain, gib her den Kochlöffel.'];
-  const GERTI_BYE = ['So, jetzt du wieder. Du kannst des eh!', 'Merk dir’s gut, i bin ned ewig da!', 'Und immer mit Liebe kochen, gell?'];
+  const GERTI_HELLO = ['Hiaz geh weg, Bua, jetzt koch i!', 'Kruzitürken, wer hat denn do so a Gwirx im Topf g’macht? Gib her!', 'Sakra, so wird des nix. Lass die Leolita ran!'];
+  const GERTI_SCOLD = ['Und es do hint: Hörts auf mit’m Raunzen, es kriagts eh glei wos!', 'Wer drängelt, kriagt nix. So schaut’s aus!', 'Hiaz is a Ruah do hint, sonst gibt’s nur Kompott!'];
+  const GERTI_BYE = ['So. Und hiaz machst as selber, gö?', 'Merk da des, i sog’s ned zwamoi!', 'Pfiat eich, und ned raunzen!'];
   function gertiAt(x) { $('gerti').style.transform = `translateX(${x}px)`; }
 
   async function masterCook() {
-    if (S.phase !== 'play' || S.busy || S.jokers <= 0) return;
+    if (S.phase !== 'play' || S.busy || S.jk.leolita <= 0) return;
     const avail = Object.keys(S.crate).filter((id) => S.crate[id] > 0);
-    if (!avail.length) { toast('Die Kiste ist leer.', 'Ohne Zutaten kann auch Oma Gerti nix zaubern. Schick Jakob los!'); return; }
-    S.jokers -= 1;
+    if (!avail.length) { toast('Die Kiste ist leer.', 'Ohne Zutaten kann auch Leolita nix zaubern. Schick Jakob los!'); return; }
+    S.jk.leolita -= 1;
     S.busy = true;
     clearPot();
     syncButtons();
     const plan = planMaster();
-    // Oma Gerti kommt aus dem Hof
+    // Leolita kommt aus dem Hof
     $('gerti').classList.add('walking');
     gertiAt(0);
     await wait(2000);
     $('gerti').classList.remove('walking');
-    say(270, 350, pick(GERTI_HELLO), 3000, 'Oma Gerti');
+    say(270, 350, pick(GERTI_HELLO), 3000, 'Leolita');
     await wait(1400);
+    if (S.queue.length) setTimeout(() => say(Math.min(900, S.queue[Math.min(2, S.queue.length - 1)].x), 360, pick(GERTI_SCOLD), 3200, 'Leolita'), 1500);
     const steps = [];
     const target = potMouthScreen();
     for (const id of plan.pot) {
@@ -1082,7 +1098,7 @@
     addRecipe(plan.r.dish || 'Omas Resteküche', steps);
     cook();
     setTimeout(() => {
-      say(270, 350, pick(GERTI_BYE), 3200, 'Oma Gerti');
+      say(270, 350, pick(GERTI_BYE), 3200, 'Leolita');
       setTimeout(() => { $('gerti').classList.add('walking'); gertiAt(-420); setTimeout(() => $('gerti').classList.remove('walking'), 2000); }, 2600);
     }, 4200);
   }
@@ -1095,7 +1111,7 @@
     d.open = true;
     book.querySelectorAll('details').forEach((x) => { x.open = false; });
     const s = document.createElement('summary');
-    s.textContent = name + ' nach Oma Gerti';
+    s.textContent = name + ' nach Leolita';
     const ol = document.createElement('ol');
     steps.forEach(([id, why]) => {
       const li = document.createElement('li');
@@ -1108,10 +1124,144 @@
     $('recipes-wrap').hidden = false;
   }
 
-  function earnJoker(reason) {
-    S.jokers += 1;
+  function earnJoker(who, reason) {
+    S.jk[who] += 1;
     syncButtons();
-    toast('Oma Gerti hat wieder Zeit!', reason + ' Du kannst sie noch einmal rufen.');
+    const name = { leolita: 'Leolita', stefan: 'Stefan', nif: 'Nif' }[who];
+    toast(name + ' hat wieder Zeit!', reason + ' Du kannst ' + (who === 'leolita' ? 'sie' : 'ihn') + ' noch einmal rufen.');
+  }
+
+  // ---------------------------------------------------------------
+  // Die echte Crew als Joker: Stefan (Mitmach-Küche) und Nif (Kräutertee)
+  // ---------------------------------------------------------------
+  const STEFAN_HELLO = ['Servus, ihr Lieben! Wer mag mitschnippeln? Gemeinsam schmeckt’s doppelt so gut.', 'I hab a Idee: Statt warten, kochen ma zam!'];
+  const STEFAN_INVITE = ['Weißt was? Statt raunzen pack ma’s gemeinsam an. Komm, i zeig dir was.', 'Du schaust aus, als könntest gut Linsen verlesen. Magst helfen?', 'Komm her, i brauch a ruhige Hand für die Antipasti.'];
+  const HELPER_YES = ['Na guat ... wenn’s sein muss.', 'I? Kochen? Na gut, probier ma’s.', 'Eigentlich hab i eh nix Besseres vor.'];
+  const STEFAN_BYE = ['Schaut’s, wie schön des wird, wenn jeder a bissl mithilft!', 'I hab euch gern. Bis bald, und kocht’s weiter zam!'];
+  const HELPER_DONE = ['Hätt i ned gedacht: Selber kochen macht ja Spaß!', 'Des nächste Mal bring i meine Nachbarin mit.', 'I bin jetzt offiziell in der Crew, oder?'];
+  const NIF_HELLO = ['Atmet’s durch. Die Melisse macht des eh.', 'A Tasse Kräutertee für jeden. Ganz ohne Eile.', 'Kamille fürs Gemüt, Pfefferminz für den Kopf.'];
+  const NIF_POUR = ['Für di. Riech amoi.', 'Langsam trinken, gell.', 'Spürst es? Die Ruhe kommt von selber.'];
+  const NIF_BYE = ['Wer wartet, hat schon gewonnen. Servus.', 'Die Kräuter wachsen eh überall, man muss nur hinschauen.'];
+  const CALM_LINES = ['Mmh, der Tee ... i hab gar keine Erwartungen mehr.', 'Alles is, wie’s is. Und des is guat.', 'Schlange? Welche Schlange? I bin a Blatt im Wind.', 'I spür mei Grätzl atmen.', 'Oy, so leicht war mir seit Jahren ned.'];
+
+  function walkTo(el, x, ms) {
+    el.style.transition = `transform ${ms || 1600}ms ease-in-out`;
+    el.style.transform = `translate(${x}px, 476px)`;
+    el.classList.add('walking');
+    clearTimeout(el._w);
+    el._w = setTimeout(() => el.classList.remove('walking'), ms || 1600);
+    return wait(ms || 1600);
+  }
+
+  async function callStefan() {
+    if (S.phase !== 'play' || S.busy || S.jk.stefan <= 0 || S.helpers.length) return;
+    if (!S.queue.length) { toast('Grad steht niemand an.', 'Stefan kommt, wenn’s jemanden zum Mitanpacken gibt.'); return; }
+    S.jk.stefan -= 1;
+    syncButtons();
+    const st = $('stefan');
+    await walkTo(st, 330, 1800);
+    say(330, 360, pick(STEFAN_HELLO), 3400, 'Stefan');
+    await wait(1600);
+    // Am liebsten holt er die, die am meisten raunzen
+    const pool = S.queue.slice().sort((a, b) => (b.humor === 'grant') - (a.humor === 'grant'));
+    const picked = pool.slice(0, Math.min(3, pool.length));
+    const first = picked[0];
+    await walkTo(st, Math.max(400, first.x - 60), 1200);
+    say(first.x - 40, 360, pick(STEFAN_INVITE), 3200, 'Stefan');
+    await wait(1500);
+    picked.forEach((n, i) => {
+      const k = S.queue.indexOf(n);
+      if (k >= 0) S.queue.splice(k, 1);
+      n.helper = true;
+      n.hx = 300 + i * 52; n.hy = 548;
+      n.y = QY;
+      S.helpers.push(n);
+      if (i === 0) setTimeout(() => say(n.x, QY - 108, pick(HELPER_YES), 3000, n.name), 600);
+    });
+    layoutQueue();
+    S.helperDishes = 3;
+    updateHud();
+    await walkTo(st, 250, 1400);
+    toast(`${picked.length} ${picked.length === 1 ? 'Nachbar packt' : 'Nachbarn packen'} mit an!`, 'Die nächsten 3 Gerichte reichen für 2 Portionen mehr.');
+    setTimeout(() => say(250, 360, pick(STEFAN_BYE), 3400, 'Stefan'), 400);
+    await wait(3600);
+    await walkTo(st, -300, 2000);
+  }
+  function helpersDone() {
+    const hs = S.helpers.splice(0);
+    hs.forEach((n, i) => {
+      n.el.querySelector('.bowl').setAttribute('opacity', '1');
+      if (i === 0) say(n.x, n.y - 108, pick(HELPER_DONE), 3600, n.name);
+      n.helper = false;
+      n.leaveT = 1 + i * 0.3;
+      n.tx = rand(700, 1180); n.ty = rand(500, 540);
+      S.leaving.push(n);
+    });
+    S.served += hs.length;
+    toast('Die Helfer:innen essen mit und gehen glücklich heim!', `+${hs.length} versorgt. Gemeinsam geht’s leichter.`);
+    updateHud();
+    if (S.served >= GOAL) setTimeout(win, 1600);
+  }
+
+  function bikeTo(x, ms) {
+    const bk = $('nifbike');
+    bk.style.transition = `transform ${ms}ms cubic-bezier(.3,.6,.4,1)`;
+    bk.style.transform = `translate(${x}px, 414px)`;
+    bk.classList.add('rolling');
+    clearTimeout(bk._r);
+    bk._r = setTimeout(() => bk.classList.remove('rolling'), ms);
+    return wait(ms);
+  }
+  async function callNif() {
+    if (S.phase !== 'play' || S.jk.nif <= 0 || S.calmUntil > S.elapsed || S.nifBusy) return;
+    S.jk.nif -= 1;
+    S.nifBusy = true;
+    syncButtons();
+    const nf = $('nif');
+    // Nif radelt mit seiner Teeküche herein
+    await bikeTo(700, 2800);
+    $('nif-rider').setAttribute('opacity', '0');
+    nf.style.transition = 'none';
+    nf.style.transform = 'translate(705px, 476px)';
+    void nf.getBBox();
+    say(705, 360, pick(NIF_HELLO), 3400, 'Nif');
+    await wait(900);
+    S.calmUntil = S.elapsed + 60;
+    $('queue').classList.add('calm');
+    $('leaves').setAttribute('opacity', '1');
+    updateHud();
+    const list = S.queue.slice();
+    for (let i = 0; i < list.length; i++) {
+      const n = list[i];
+      if (!n.el.isConnected || !S.queue.includes(n)) continue;
+      await walkTo(nf, n.x + 34, 500);
+      const cup = n.el.querySelector('.cup');
+      if (cup) cup.setAttribute('opacity', '1');
+      const zen = n.el.querySelector('.zen');
+      if (zen) zen.setAttribute('opacity', '1');
+      if (i === 1) say(n.x + 30, 360, pick(NIF_POUR), 2400, 'Nif');
+      if (i === 2) setTimeout(() => { if (n.el.isConnected) say(n.x, QY - 108, pick(CALM_LINES), 3200, n.name); }, 500);
+    }
+    toast('Tee-Ruhe für eine Minute!', 'Die Leute schweben ohne Erwartungen, und es kommen weniger nach.');
+    await wait(800);
+    say(Math.min(1100, (S.queue.length ? S.queue[S.queue.length - 1].x : 600) + 30), 360, pick(NIF_BYE), 3200, 'Nif');
+    await wait(1200);
+    await walkTo(nf, 705, 1600);
+    nf.style.transition = 'none';
+    nf.style.transform = 'translate(-300px, 476px)';
+    $('nif-rider').setAttribute('opacity', '1');
+    S.nifBusy = false;
+    syncButtons();
+  }
+  function calmTick() {
+    if (S.calmUntil && S.elapsed >= S.calmUntil) {
+      S.calmUntil = 0;
+      $('queue').classList.remove('calm');
+      $('leaves').setAttribute('opacity', '0');
+      document.querySelectorAll('#queue .zen').forEach((z) => z.setAttribute('opacity', '0'));
+      toast('Der Tee ist ausgetrunken.', 'Die Leute landen wieder im Hier und Jetzt.');
+      if (!S.nifBusy) bikeTo(1450, 3000);
+    }
   }
 
   function feedFront(count, spoons, handed) {
@@ -1125,6 +1275,7 @@
       S.leaving.push(n);
     });
     S.served += fed.length;
+    if (Math.floor(S.served / 6) > S.stefanMark) { S.stefanMark = Math.floor(S.served / 6); earnJoker('stefan', S.served + ' Nachbarn versorgt!'); }
     layoutQueue();
     updateHud();
     if (S.served >= GOAL) setTimeout(win, 1600);
@@ -1165,7 +1316,7 @@
     S.flowers += 1;
     S.seeds -= 1;
     addScore(10);
-    if (S.flowers % 12 === 0) earnJoker('12 neue Blumen im Grätzl!');
+    if (S.flowers % 10 === 0) earnJoker('nif', '10 neue Blumen, Nif hat frische Kräuter!');
     $('meadow').setAttribute('opacity', String(Math.min(1, S.flowers / 22)));
     if (S.flowers >= 8) $('tree1').classList.add('grown');
     if (S.flowers >= 18) $('tree2').classList.add('grown');
@@ -1268,19 +1419,20 @@
         spawnNeighbor();
         const buzz = S.served * 0.4 + S.flowers * 0.12 + S.elapsed * 0.01;
         const gap = Math.max(4.2, 12.5 - buzz);
-        S.spawnIn = gap + rand(-1, 1);
+        S.spawnIn = (gap + rand(-1, 1)) * (S.calmUntil > S.elapsed ? 2 : 1);
         if (gap < 10.5 && !S.buzz1) { S.buzz1 = true; toast('Es spricht sich herum im Grätzl!', 'Dein gutes Essen lockt immer mehr Leute an.'); say(60, 340, 'Captain, des spricht si herum! Es kommen immer mehr!', 3600, 'Mira'); }
         if (gap < 7 && !S.buzz2) { S.buzz2 = true; toast('Jetzt is richtig was los!', 'Das halbe Grätzl steht schon an.'); say(342, 330, 'Volle Kraft voraus, Crew!', 3200, 'Captain Dave'); }
       }
       // Rettungstour mit Jakob
       if (S.refilling > 0) { S.refilling -= dt; jakobTick(); }
+      calmTick();
       // Mira unterhält die Leute
       S.banterIn -= dt;
       if (S.banterIn <= 0) { banter(); S.banterIn = rand(13, 21); }
       // Ungeduld
       S.queue.forEach((n, i) => {
         n.waited += dt;
-        if (!n.talkedWait && n.waited > 16 + i * 2 && Math.random() < 0.004) { n.talkedWait = true; maybeSay(n, 'wait'); }
+        if (!n.talkedWait && n.waited > 16 + i * 2 && Math.random() < 0.004) { n.talkedWait = true; if (S.calmUntil > S.elapsed) { if (performance.now() - lastTalk > 3500 && bubbles.children.length < 2) { lastTalk = performance.now(); n.bubble = say(n.x, QY - 108, pick(CALM_LINES), 4200, n.name); } } else maybeSay(n, 'wait'); }
       });
     }
 
@@ -1297,6 +1449,15 @@
         });
       }
     }
+
+    // Helfer:innen von Stefan gehen zur Küche
+    S.helpers.forEach((n) => {
+      const dx = n.hx - n.x, dy = n.hy - n.y;
+      const moving = Math.abs(dx) + Math.abs(dy) > 2;
+      if (moving) { n.x += dx * Math.min(1, dt * 2.2); n.y += dy * Math.min(1, dt * 2.2); }
+      n.el.setAttribute('transform', `translate(${n.x.toFixed(1)} ${n.y.toFixed(1)})`);
+      n.el.firstChild.classList.toggle('walk-bob', moving && !reduceMotion);
+    });
 
     // Bewegung der Nachbarn
     S.queue.forEach((n) => {
@@ -1335,7 +1496,7 @@
       b.el.setAttribute('transform', `translate(${b.x.toFixed(1)} ${(b.y + wob).toFixed(1)}) scale(${b.face} 1)`);
     }
 
-    if (running) updateQueueBar();
+    if (running) { updateQueueBar(); if (S.calmUntil) { const c = Math.max(0, Math.ceil(S.calmUntil - S.elapsed)); $('m-calm').hidden = !c; $('m-calm-s').textContent = c; } }
     requestAnimationFrame(frame);
   }
 
@@ -1354,6 +1515,9 @@
     $('m-flowers').textContent = S.flowers;
     $('m-bees').textContent = S.bees.length;
     $('m-score').textContent = S.score;
+    const calmLeft = Math.max(0, Math.ceil((S.calmUntil || 0) - S.elapsed));
+    $('m-calm').hidden = !calmLeft;
+    $('m-calm-s').textContent = calmLeft;
     $('best').textContent = best;
     svg.classList.toggle('planting', S.seeds > 0 && S.phase === 'play');
     updateQueueBar();
@@ -1467,6 +1631,10 @@
     const mira = $('mira'); mira.style.transition = 'none'; mira.style.transform = 'translateX(-260px)'; void mira.getBBox(); mira.style.transition = '';
     const jk = $('jakob'); jk.style.transition = 'none'; jakobAt(-420); void jk.getBBox(); jk.style.transition = '';
     $('jakob-load').setAttribute('opacity', '0');
+    ['stefan', 'nif'].forEach((id) => { const el = $(id); el.style.transition = 'none'; el.style.transform = 'translate(-300px, 476px)'; });
+    const nb = $('nifbike'); nb.style.transition = 'none'; nb.style.transform = 'translate(1450px, 414px)';
+    $('nif-rider').setAttribute('opacity', '1');
+    $('queue').classList.remove('calm'); $('leaves').setAttribute('opacity', '0');
     const ge = $('gerti'); ge.style.transition = 'none'; ge.style.transform = 'translateX(-420px)'; void ge.getBBox(); ge.style.transition = '';
     $('talklog').innerHTML = '<li class="empty">Noch ist es ruhig auf der Straße.</li>';
   }
@@ -1527,7 +1695,7 @@
     const wasOpen = d.classList.contains('open');
     closeDrawers();
     d.hidden = false;
-    if ($('recipes').querySelector('.empty')) $('recipes').querySelector('.empty').textContent = 'Noch leer. Ruf Oma Gerti mit dem goldenen Knopf, dann landet ihr Rezept hier.';
+    if ($('recipes').querySelector('.empty')) $('recipes').querySelector('.empty').textContent = 'Noch leer. Ruf Leolita mit dem goldenen Knopf, dann landet ihr Rezept hier.';
     if (!wasOpen) requestAnimationFrame(() => d.classList.add('open'));
   }));
   document.querySelectorAll('.drawer-close').forEach((b) => b.addEventListener('click', closeDrawers));
@@ -1546,7 +1714,9 @@
     if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && strip.scrollWidth > strip.clientWidth) { strip.scrollLeft += e.deltaY; e.preventDefault(); }
   }, { passive: false });
   $('cook').addEventListener('click', cook);
-  $('master').addEventListener('click', masterCook);
+  $('call-leolita').addEventListener('click', masterCook);
+  $('call-stefan').addEventListener('click', callStefan);
+  $('call-nif').addEventListener('click', callNif);
   $('undo').addEventListener('click', undo);
   $('clear').addEventListener('click', clearPot);
   $('refill').addEventListener('click', refill);

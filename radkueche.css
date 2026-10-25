@@ -358,3 +358,16 @@ body.game-on .deck-btns > *{flex:0 0 auto}
 @media (max-width:640px) and (orientation:portrait){.portrait-hint{display:block}}
 .rotate-hint{display:none}
 @media (max-width:640px) and (orientation:portrait){body.game-on .rotate-hint{display:block;position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);width:80%;text-align:center;background:rgba(255,255,255,.85);border-radius:16px;padding:12px 14px;font-weight:700;font-size:15px;color:#2F5233}}
+
+/* Crew-Joker */
+.walker.walking .wbob{animation:bob .32s ease-in-out infinite alternate}
+#nifbike.rolling .wheel{animation:spin .7s linear infinite}
+#nif-rider{transition:opacity .3s ease}
+.calm-pill{background:#E3F0D8 !important;color:#2F5233 !important}
+#queue.calm .bob{animation:float-calm 3.2s ease-in-out infinite alternate}
+@keyframes float-calm{from{transform:translateY(0)}to{transform:translateY(-5px)}}
+.zen{transition:opacity .8s ease}
+.leaf{transform-box:fill-box;animation:leaf 4s ease-in-out infinite}
+.l2{animation-delay:-1.3s}.l3{animation-delay:-2.6s}
+@keyframes leaf{0%{transform:translate(0,0) rotate(0);opacity:0}25%{opacity:1}100%{transform:translate(18px,-70px) rotate(160deg);opacity:0}}
+#leaves{transition:opacity 1s ease}
