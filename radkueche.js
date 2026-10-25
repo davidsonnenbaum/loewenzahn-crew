@@ -80,24 +80,45 @@
     return { day: now.getDate(), month: mi, word: topId ? SEASON_WORD[topId] : 'Rettungszeit' };
   }
 
-  function weightedPick(pool, mi) {
+  // Zufall mit Startwert: gleiche Tageskiste für alle
+  function mulberry(seed) {
+    let a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  const TODAY = new Date();
+  const DAY_KEY = TODAY.getFullYear() * 10000 + (TODAY.getMonth() + 1) * 100 + TODAY.getDate();
+  function dayRng(k) { return mulberry(DAY_KEY * 7919 + k * 104729); }
+  function weightedPick(pool, mi, r0) {
+    const R = r0 || Math.random;
     const total = pool.reduce((s, id) => s + ING[id].w[mi], 0);
-    let r = Math.random() * total;
+    let r = R() * total;
     for (const id of pool) { r -= ING[id].w[mi]; if (r <= 0) return id; }
     return pool[pool.length - 1];
   }
 
-  function newCrate() {
+  function newCrate(r0) {
+    const R = r0 || Math.random;
     const mi = new Date().getMonth();
-    const size = pick([3, 3, 4, 4, 5, 5, 6]);
+    const sizes = [3, 3, 4, 4, 5, 5, 6];
+    const size = sizes[Math.floor(R() * sizes.length)];
     let pool = Object.keys(ING).filter((id) => ING[id].w[mi] > 0);
     const crate = {};
     for (let i = 0; i < size && pool.length; i++) {
-      const id = weightedPick(pool, mi);
+      const id = weightedPick(pool, mi, R);
       pool = pool.filter((x) => x !== id);
-      crate[id] = id === 'brot' ? Math.floor(rand(3, 6)) : Math.floor(rand(2, 5));
+      crate[id] = id === 'brot' ? Math.floor(3 + R() * 3) : Math.floor(2 + R() * 3);
     }
     return crate;
+  }
+  function nextCrate() {
+    if (S && S.daily) { S.crateNo = (S.crateNo || 0) + 1; return newCrate(dayRng(5000 + S.crateNo)); }
+    return newCrate();
   }
 
   // ---------------------------------------------------------------
@@ -487,12 +508,13 @@
   };
   const GIVE_UP = ['Na guat, dann nimm i halt irgendwas.', 'Wurscht, i nimm, was kommt.', 'I bin ja ned anspruchsvoll. Gib, was d’ hast.'];
   const WISH_HAPPY = ['Genau des hab i ma g’wünscht!', 'Woher hast g’wusst, was i will?', 'Du hörst ja richtig zu, Captain!', 'Treffer! Mitten ins Herz.'];
-  function pickWish() {
+  function pickWish(r0) {
+    const R = r0 || Math.random;
     const mo = new Date().getMonth() + 1;
     const cold = [10, 11, 12, 1, 2, 3].includes(mo);
     const w = { brot: 2, wasser: 2, obst: 1.5, suppe: cold ? 4 : 2, deftig: cold ? 3 : 2, suess: 1.6, scharf: 1, egal: 1.4, fleisch: 1.1 };
     const total = Object.values(w).reduce((a, b) => a + b, 0);
-    let r = Math.random() * total;
+    let r = R() * total;
     for (const k in w) { r -= w[k]; if (r <= 0) return k; }
     return 'egal';
   }
@@ -577,24 +599,57 @@
     toast.h = setTimeout(() => t.classList.remove('show'), sub ? 4000 : 2400);
   }
   function readMs(text) { return Math.max(3600, 1800 + String(text).length * 85); }
-  function say(x, y, text, ms, who) {
+  // Immer nur eine Sprechblase: alle reden schön der Reihe nach
+  const talkQ = [];
+  let talkBusy = false, talkTimer = null;
+  function say(x, y, text, ms, who, opt) {
+    opt = opt || {};
     const b = document.createElement('div');
     b.className = 'bubble-say';
     b.textContent = text;
-    logTalk(who || 'Nachbar:in', text);
+    let resolve;
+    b.done = new Promise((r) => { resolve = r; });
+    if (opt.low && (talkBusy || talkQ.length)) { resolve(); return b; }
+    if (talkQ.length >= 4) {
+      const i = talkQ.findIndex((t) => !t.keep);
+      if (i >= 0) talkQ.splice(i, 1)[0].resolve();
+      else if (!opt.keep) { resolve(); return b; }
+    }
+    talkQ.push({ b, x, y, text, who: who || 'Nachbar:in', dur: Math.max(ms || 0, readMs(text)), resolve, keep: !!opt.keep, xf: opt.xf });
+    pumpTalk();
+    return b;
+  }
+  function pumpTalk() {
+    if (talkBusy) return;
+    const it = talkQ.shift();
+    if (!it) return;
+    talkBusy = true;
+    const b = it.b;
+    const x = it.xf ? it.xf() : it.x;
+    logTalk(it.who, it.text);
     const left = Math.max(12, Math.min(88, x / 1200 * 100));
     b.style.left = left + '%';
-    b.style.top = ((y - 100) / 460 * 100) + '%';
+    b.style.top = ((it.y - 100) / 460 * 100) + '%';
     bubbles.appendChild(b);
     const boxW = bubbles.clientWidth;
     if (boxW) {
       const bw = b.offsetWidth;
-      const px = Math.max(bw / 2 + 4, Math.min(boxW - bw / 2 - 4, left / 100 * boxW));
-      b.style.left = px + 'px';
+      b.style.left = Math.max(bw / 2 + 4, Math.min(boxW - bw / 2 - 4, left / 100 * boxW)) + 'px';
     }
     requestAnimationFrame(() => b.classList.add('show'));
-    setTimeout(() => { b.classList.remove('show'); setTimeout(() => b.remove(), 400); }, Math.max(ms || 0, readMs(text)) + 800);
-    return b;
+    talkTimer = setTimeout(() => {
+      b.classList.remove('show');
+      setTimeout(() => b.remove(), 300);
+      it.resolve();
+      talkBusy = false;
+      talkTimer = setTimeout(pumpTalk, 350);
+    }, it.dur);
+  }
+  function clearTalk() {
+    talkQ.splice(0).forEach((t) => t.resolve());
+    clearTimeout(talkTimer);
+    talkBusy = false;
+    bubbles.innerHTML = '';
   }
   function logTalk(who, text) {
     const list = $('talklog');
@@ -612,18 +667,23 @@
   function maybeSay(n, kind, force) {
     const now = performance.now();
     if (!force && now - lastTalk < 5000) return;
-    if (!force && bubbles.children.length >= 2) return;
     lastTalk = now;
-    n.bubble = say(n.x, QY - 162, pick(LINES[n.humor][kind]), 4600, n.name);
+    n.bubble = say(n.x, QY - 162, pick(LINES[n.humor][kind]), 4600, n.name, { low: !force, xf: () => n.x });
   }
 
   // ----- Nachbarn -----
   function spawnNeighbor() {
-    const look = { skin: pick(SKIN), shirt: pick(SHIRT), hat: pick(HATS), hatColor: pick(SHIRT), hair: pick(['#3B2A1E', '#8A5A3C', '#C8A46B', '#D8D3C8', '#1E1A17']) };
+    S.neighborNo = (S.neighborNo || 0) + 1;
+    const R = S.daily ? dayRng(S.neighborNo) : Math.random;
+    const pk = (arr) => arr[Math.floor(R() * arr.length)];
+    const look = { skin: pk(SKIN), shirt: pk(SHIRT), hat: pk(HATS), hatColor: pk(SHIRT), hair: pk(['#3B2A1E', '#8A5A3C', '#C8A46B', '#D8D3C8', '#1E1A17']) };
+    const humor = pk(['grant', 'schmaeh', 'jiddisch']);
+    const nname = pk(NAMES);
+    const nwish = pickWish(R);
     const g = mk('g', {});
     g.innerHTML = personMarkup(look);
     queueLayer.appendChild(g);
-    const n = { id: S.nextId++, el: g, x: 1260, tx: 0, humor: pick(['grant', 'schmaeh', 'jiddisch']), name: pick(NAMES), waited: 0, talkedWait: false, wish: pickWish(), gaveUp: false };
+    const n = { id: S.nextId++, el: g, x: 1260, tx: 0, humor, name: nname, waited: 0, talkedWait: false, wish: nwish, gaveUp: false };
     S.queue.push(n);
     renderWish(n);
     if (S.calmUntil > S.elapsed) { g.querySelector('.cup').setAttribute('opacity', '1'); g.querySelector('.zen').setAttribute('opacity', '1'); }
@@ -632,7 +692,7 @@
       if (!S.queue.includes(n)) return;
       if (Math.random() < 0.7 || S.queue.length <= 2) {
         const now = performance.now();
-        if (now - lastTalk > 3500 && bubbles.children.length < 3) { lastTalk = now; n.bubble = say(n.x, QY - 162, pick(WISH_LINES[n.wish]), 4200, n.name); }
+        if (now - lastTalk > 3500) { lastTalk = now; n.bubble = say(n.x, QY - 162, pick(WISH_LINES[n.wish]), 4200, n.name, { low: true, xf: () => n.x }); }
       } else maybeSay(n, 'arrive');
     }, 1600);
     if (S.queue.length >= QUEUE_MAX) lose();
@@ -876,7 +936,7 @@
       S.refilling = 0;
       S.jakob = 'home';
       $('jakob').classList.remove('rolling');
-      const fresh = newCrate();
+      const fresh = nextCrate();
       for (const id in fresh) S.crate[id] = (S.crate[id] || 0) + fresh[id];
       $('refill-note').textContent = '';
       renderCrate();
@@ -886,8 +946,11 @@
     }
   }
 
-  // ----- Mira unterhält die Schlange -----
+  // ----- Rolf, der Smutje, unterhält die Schlange -----
   const MIRA_SOLO = [
+    'Arrr! Wer drängelt, muss über die Planke! ... Also übern Gehsteig.',
+    'Mit oan Aug siag i trotzdem, wer si vordrängelt!',
+    'A Pirat ohne Schiff is a Radfahrer mit Augenklappe. So schaut’s aus.',
     'Wer errät, wie viele Erdäpfel i jonglier, kriegt an Nachschlag! Tipp: Es san drei.',
     'Warten is wie Kochen: Je länger, desto besser. Meistens.',
     'Liebe Nachbarschaft, bitte ned drängeln, der Kürbis is scho nervös genug.',
@@ -898,25 +961,27 @@
     ['Captain, a Kunde fragt, ob des Essen bio is.', 'Bio-grafisch! Jedes Gemüse hat a Geschichte.'],
     ['Captain, wie viel Salz?', 'A Prise. A Weaner Prise. Also a Handvoll.'],
     ['Captain, wieso trägst du eigentlich a Kapitänsmütze?', 'Damit mi die Zwiebeln ernst nehmen.'],
-    ['I hab die Zwiebel g’schnitten und jetzt wein i.', 'Des is Teambuilding, Mira.'],
+    ['I hab die Zwiebel g’schnitten und jetzt wein i.', 'Des is Teambuilding, Rolf.'],
     ['Captain, die Schlange wird länger!', 'Dann kochen ma schneller. Und reden langsamer.'],
+    ['Captain, wo is eigentlich mei zweites Aug?', 'Im Kompott, Rolf. Wie jeden Dienstag.'],
+    ['Captain, a Pirat raubt doch, oder?', 'Mia retten, Rolf. Des is der Unterschied.'],
     ['Captain, is des Schiff eigentlich seetauglich?', 'Na. Aber grätzltauglich, und des is wichtiger.']
   ];
   function banter() {
     if (S.feasting) return;
-    if (bubbles.children.length >= 2) return;
+    if (talkBusy || talkQ.length) return;
     const r = Math.random();
     if (r < 0.35) {
       $('juggle').setAttribute('opacity', '1');
       $('mira').classList.add('juggling');
-      say(60, 340, pick(MIRA_SOLO), 4200, 'Mira');
+      say(60, 340, pick(MIRA_SOLO), 4200, 'Rolf');
       setTimeout(() => { $('juggle').setAttribute('opacity', '0'); $('mira').classList.remove('juggling'); }, 4200);
     } else if (r < 0.8) {
       const d = pick(DUETS);
-      say(60, 340, d[0], 3400, 'Mira');
-      setTimeout(() => { if (S.phase === 'play') say(342, 330, d[1], 3800, 'Captain Dave'); }, readMs(d[0]) * 0.8);
+      say(60, 340, d[0], 3400, 'Rolf');
+      say(342, 330, d[1], 3800, 'Captain Dave');
     } else {
-      say(60, 340, pick(MIRA_SOLO), 4200, 'Mira');
+      say(60, 340, pick(MIRA_SOLO), 4200, 'Rolf');
     }
   }
 
@@ -928,7 +993,7 @@
     ['Des is ka Essen, des is a Liebeserklärung!', 'Gerettet und veredelt. So schaut’s aus!', 'Wenn des ned schmeckt, ess i mei Kapitänsmütze.']
   ];
   const MIRA_REACT = [
-    'Captain, i hol schnell den Kompostkübel ...',
+    'Arrr, Captain, i hol schnell den Kompostkübel ...',
     'Mutig gekocht, Captain. Sehr mutig.',
     'Riecht guat! Also eh guat.',
     'Applaus für den Captain! Und für die Erdäpfel!'
@@ -1036,7 +1101,7 @@
     showJuryPop(r);
 
     say(342, 330, master ? pick(['Danke, Leolitta! Des war a Lehrstunde.', 'Leolitta, du bist a Legende!', 'I glaub, i muss no viel lernen.']) : pick(CAPTAIN_JOKES[r.spoons]), 3800, 'Captain Dave');
-    if (Math.random() < 0.5) setTimeout(() => say(60, 340, MIRA_REACT[r.spoons], 3200, 'Mira'), 1600);
+    if (Math.random() < 0.5) say(60, 340, MIRA_REACT[r.spoons], 3200, 'Rolf', { low: true });
 
     if (feeds) {
       S.handing = true;
@@ -1191,13 +1256,11 @@
     gertiAt(standX - 270);
     await wait(2000);
     g.classList.remove('walking');
-    let prev = null;
     const talk = async (leo, text, ms) => {
       if (!S.queue.includes(n) || S.phase !== 'play') throw new Error('stop');
       while (S.paused) await wait(300);
-      if (prev && prev.isConnected) { prev.classList.remove('show'); const p = prev; setTimeout(() => p.remove(), 350); }
-      prev = leo ? say(standX, 350, text, ms, 'Leolitta') : say(n.x, QY - 162, text, ms, n.name);
-      await wait(Math.max(ms, readMs(text)) + 500);
+      const b = leo ? say(standX, 350, text, ms, 'Leolitta', { keep: true }) : say(n.x, QY - 162, text, ms, n.name, { keep: true, xf: () => n.x });
+      await b.done;
     };
     try {
       await talk(true, pick(LEO_OPEN), 3400);
@@ -1246,20 +1309,16 @@
     await wait(2100);
     g.classList.remove('walking');
     const fo = pick(FEAST_OPEN[kind]);
-    say(560, 350, fo, 3600, 'Leolitta');
-    await wait(readMs(fo) * 0.6);
+    await say(560, 350, fo, 3600, 'Leolitta', { keep: true }).done;
+    talkQ.splice(0).forEach((t) => t.resolve());
     const list = S.queue.slice();
     list.forEach((n, i) => { n.tx = 620 + (i % 6) * 38; n.feast = true; });
     await wait(1900);
     list.forEach((n) => { const b = n.el.querySelector('.bowl'); if (b) { b.querySelector('path').setAttribute('fill', '#B5651D'); b.setAttribute('opacity', '1'); } });
     const cheer = shuffled(FEAST_CHEER);
-    bubbles.querySelectorAll('.bubble-say').forEach((bb) => { bb.classList.remove('show'); setTimeout(() => bb.remove(), 350); });
-    let prevB = null;
     for (let i = 0; i < Math.min(3, list.length); i++) {
       const n = list[i];
-      if (prevB && prevB.isConnected) { prevB.classList.remove('show'); const pb = prevB; setTimeout(() => pb.remove(), 350); }
-      if (n.el.isConnected) prevB = say(n.x, QY - 162, cheer[i], 3000, n.name);
-      await wait(readMs(cheer[i]) * 0.75);
+      if (n.el.isConnected) await say(n.x, QY - 162, cheer[i], 3000, n.name, { keep: true }).done;
     }
     const fed = list.filter((n) => S.queue.includes(n));
     feedList(fed, 3, true);
@@ -1268,8 +1327,7 @@
     toast(`Festtag im Grätzl! ${fed.length} glückliche Nachbarn`, `+${fed.length * 30 + 100} Punkte. Und keinem einzigen Viech is was passiert.`);
     S.feasts = (S.feasts || 0) + 1;
     await wait(1800);
-    say(560, 350, pick(['So schaut’s aus, wenn ma Herz hat!', 'Und nächstes Mal bringt’s eure Schwiegermütter mit!', 'Pfiat eich, ihr Truthahn-Fans!']), 3000, 'Leolitta');
-    await wait(2400);
+    await say(560, 350, pick(['So schaut’s aus, wenn ma Herz hat!', 'Und nächstes Mal bringt’s eure Schwiegermütter mit!', 'Pfiat eich, ihr Truthahn-Fans!']), 3000, 'Leolitta', { keep: true }).done;
     $('feastglow').classList.remove('on');
     g.classList.add('walking');
     gertiAt(-420);
@@ -1533,8 +1591,8 @@
       if (n.wish === 'wasser') teaServed.push(n);
       const zen = n.el.querySelector('.zen');
       if (zen) zen.setAttribute('opacity', '1');
-      if (i === 1) say(n.x + 30, 360, pick(NIF_POUR), 2400, 'Nif');
-      if (i === 2) setTimeout(() => { if (n.el.isConnected) say(n.x, QY - 108, pick(CALM_LINES), 3200, n.name); }, 500);
+      if (i === 1) say(n.x + 30, 360, pick(NIF_POUR), 2400, 'Nif', { low: true });
+      if (i === 2) setTimeout(() => { if (n.el.isConnected) say(n.x, QY - 162, pick(CALM_LINES), 3200, n.name, { low: true }); }, 500);
     }
     if (teaServed.length) { feedList(teaServed, 3, true); addScore(teaServed.length * 25); }
     toast('Tee-Ruhe für eine Minute!', teaServed.length ? `${teaServed.length} Durstige sind versorgt, und alle anderen schweben ohne Erwartungen.` : 'Die Leute schweben ohne Erwartungen, und es kommen weniger nach.');
@@ -1566,7 +1624,7 @@
       if (n.wish !== 'egal') S.wishHits += 1;
       const wg = n.el.querySelector('.wish'); if (wg) wg.setAttribute('opacity', '0');
       n.el.querySelector('.bowl').setAttribute('opacity', '1');
-      if (!handed && i === 0 && Math.random() < 0.6) setTimeout(() => say(n.x, QY - 162, pick(LINES[n.humor]['r' + spoons]), 4000, n.name), 200);
+      if (!handed && i === 0 && Math.random() < 0.6) setTimeout(() => say(n.x, QY - 162, pick(LINES[n.humor]['r' + spoons]), 4000, n.name, { low: true }), 200);
       n.leaveT = 0.4 + i * 0.35;
       n.ty = rand(500, 540);
       n.tx = rand(QX0 + 40, 1180);
@@ -1600,11 +1658,58 @@
     return `<g class="grow"><g class="sway" style="animation-delay:${rand(-3, 0).toFixed(2)}s">${stem}${heads[kind]}</g></g>`;
   }
   let flowerTurn = 0;
-  function placeFlower(x, y, scale) {
-    const kind = FLOWERS[flowerTurn++ % FLOWERS.length];
-    const h = (kind === 'sonnenblume' ? rand(42, 56) : rand(20, 34)) * scale;
+  // ---------------------------------------------------------------
+  // Das Grätzl wächst bleibend: Blumen, Dächer und Schmuck bleiben
+  // ---------------------------------------------------------------
+  const MILESTONES = [
+    { at: 15, id: 'deco-bunting', title: 'Wimpel über der Straße!', sub: 'Dein Grätzl feiert: 15 Blumen blühen schon.' },
+    { at: 35, id: 'deco-bench', title: 'Ein Bankerl zum Plaudern!', sub: '35 Blumen. Jetzt bleiben die Leute auch sitzen.' },
+    { at: 60, id: 'deco-market', title: 'Ein Marktstand!', sub: '60 Blumen. Nachbarn verkaufen jetzt Selbstgemachtes.' },
+    { at: 100, id: 'deco-sign', title: 'Begegnungszone!', sub: '100 Blumen. Aus der Straße ist ein Dorfplatz geworden.' }
+  ];
+  let G = { meadow: [], roof: [], green: [false, false, false, false], seen: [] };
+  try { const raw = localStorage.getItem('rk-graetzl'); if (raw) G = Object.assign(G, JSON.parse(raw)); } catch (e) { /* frisch */ }
+  function saveG() { try { localStorage.setItem('rk-graetzl', JSON.stringify(G)); } catch (e) { /* egal */ } }
+  function totalFlowers() { return G.meadow.length + G.roof.length; }
+  function roofTuft(px, ry, animate) {
+    plantLayer.appendChild(mk('path', { d: `M${px - 9} ${ry + 1} Q${px - 4} ${ry - 7} ${px} ${ry + 1} Q${px + 4} ${ry - 8} ${px + 9} ${ry + 1} Z`, fill: '#7FA36F', class: animate ? 'grow' : '' }));
+  }
+  function updateGrowth(announce) {
+    const t = totalFlowers();
+    $('meadow').setAttribute('opacity', String(Math.min(1, G.meadow.length / 22)));
+    if (t >= 8) $('tree1').classList.add('grown');
+    if (t >= 18) $('tree2').classList.add('grown');
+    MILESTONES.forEach((m) => {
+      const el = $(m.id);
+      if (!el) return;
+      const on = t >= m.at || (m.id === 'deco-sign' && G.green.every(Boolean) && t >= 60);
+      el.setAttribute('opacity', on ? '1' : '0');
+      if (on && !G.seen.includes(m.id)) {
+        G.seen.push(m.id); saveG();
+        if (announce) { toast(m.title, m.sub); Music.sfx('ding'); }
+      }
+    });
+  }
+  function restoreGraetzl() {
+    G.meadow.forEach(([x, y, k]) => placeFlower(x, y, 1, k, true));
+    G.roof.forEach(([i, px, k]) => { const ry = HOUSES[i].roof(px); roofTuft(px, ry, false); placeFlower(px, ry, 0.75, k, true); });
+    G.green.forEach((g, i) => { if (g) greenHouse(i); });
+    S.roofs = [0, 1, 2, 3].map((i) => G.roof.filter((r) => r[0] === i).length);
+    S.green = G.green.slice();
+    updateGrowth(false);
+    syncBees(true);
+  }
+  function grStats() {
+    const t = totalFlowers(), gh = G.green.filter(Boolean).length;
+    return t ? `Dein Grätzl: ${t} Blumen, ${gh} ${gh === 1 ? 'grünes Haus' : 'grüne Häuser'}.` : 'Dein Grätzl ist noch grau. Mit jedem guten Gericht bekommst du Samen, und alles, was du pflanzt, bleibt stehen.';
+  }
+
+  function placeFlower(x, y, scale, kind0, still) {
+    const kind = kind0 || FLOWERS[flowerTurn++ % FLOWERS.length];
+    const h = (kind === 'sonnenblume' ? 49 : 27) * scale + (still ? 0 : rand(-5, 5));
     const g = mk('g', { transform: `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${scale})` });
     g.innerHTML = flowerMarkup(kind, h / scale);
+    if (still) { const gg = g.querySelector('.grow'); if (gg) gg.classList.remove('grow'); }
     plantLayer.appendChild(g);
     S.targets.push([x, y - h]);
     return kind;
@@ -1614,10 +1719,8 @@
     S.seeds -= 1;
     addScore(10);
     if (S.flowers % 10 === 0) earnJoker('nif', '10 neue Blumen, Nif hat frische Kräuter!');
-    $('meadow').setAttribute('opacity', String(Math.min(1, S.flowers / 22)));
-    if (S.flowers >= 8) $('tree1').classList.add('grown');
-    if (S.flowers >= 18) $('tree2').classList.add('grown');
-    if (S.flowers === 1) toast('Die erste Blume!', 'Blumen locken Hummeln an, und ein blühendes Grätzl spricht sich herum.');
+    updateGrowth(true);
+    if (S.flowers === 1 && totalFlowers() < 3) toast('Die erste Blume!', 'Blumen locken Hummeln an, und ein blühendes Grätzl spricht sich herum.');
     syncBees();
     updateHud();
   }
@@ -1649,7 +1752,10 @@
     if (S.phase !== 'play' || S.paused) return;
     if (S.seeds <= 0) { toast('Keine Samen mehr.', 'Koch ein gutes Gericht, dann gibt es neue.'); return; }
     if (y >= 486) {
-      placeFlower(x, Math.min(552, Math.max(496, y)), 1);
+      if (G.meadow.length >= 140) { toast('Die Wiese ist voll. So viel Leben!', 'Pflanz auf den Dächern weiter.'); return; }
+      const yy = Math.min(552, Math.max(496, y));
+      const k = placeFlower(x, yy, 1);
+      G.meadow.push([Math.round(x), Math.round(yy), k]); saveG();
       afterFlower();
       return;
     }
@@ -1659,16 +1765,20 @@
       const hs = HOUSES[i];
       const px = Math.max(hs.x0, Math.min(hs.x1, x + rand(-6, 6)));
       const ry = hs.roof(px);
-      plantLayer.appendChild(mk('path', { d: `M${px - 9} ${ry + 1} Q${px - 4} ${ry - 7} ${px} ${ry + 1} Q${px + 4} ${ry - 8} ${px + 9} ${ry + 1} Z`, fill: '#7FA36F', class: 'grow' }));
-      placeFlower(px, ry, 0.75);
+      roofTuft(px, ry, true);
+      const k = placeFlower(px, ry, 0.75);
+      G.roof.push([i, Math.round(px), k]);
       S.roofs[i] += 1;
       afterFlower();
-      if (S.roofs[i] === 4 && !S.green[i]) {
+      if (S.roofs[i] >= 4 && !S.green[i]) {
         S.green[i] = true;
+        G.green[i] = true;
         greenHouse(i);
         addScore(50);
-        toast('Ein Haus wird grün! +50', 'Efeu klettert hoch, und vor den Fenstern blüht es.');
+        toast('Ein Haus wird grün! +50', 'Efeu klettert hoch, und vor den Fenstern blüht es. Und es bleibt grün!');
       }
+      saveG();
+      updateGrowth(true);
       return;
     }
     if (y >= 410) toast('Pflanz auf der Wiese vorne oder auf einem Haus.', 'Auf der Fahrbahn stehen die Nachbarn an.');
@@ -1728,10 +1838,12 @@
     const t = S.targets.length ? pick(S.targets) : [rand(60, 1140), rand(490, 540)];
     b.tx = t[0] + rand(-4, 4); b.ty = t[1] - 8;
   }
-  function syncBees() {
-    const want = Math.min(36, Math.floor(S.flowers / 2));
+  function syncBees(silent) {
+    const want = Math.min(36, Math.floor(totalFlowers() / 2));
     while (S.bees.length < want) {
-      const b = makeBee(); beeTarget(b); S.bees.push(b); addScore(5);
+      const b = makeBee(); beeTarget(b); S.bees.push(b);
+      if (silent) continue;
+      addScore(5);
       if (S.bees.length === 1) setTimeout(() => toast('Die erste Hummel ist da!', 'Je mehr Blumen, desto mehr Hummeln.'), 1200);
     }
   }
@@ -1755,13 +1867,13 @@
         const buzz = S.served * 0.4 + S.flowers * 0.12 + S.elapsed * 0.01;
         const gap = Math.max(4.2, 12.5 - buzz);
         S.spawnIn = (gap + rand(-1, 1)) * (S.calmUntil > S.elapsed ? 2 : 1);
-        if (gap < 10.5 && !S.buzz1) { S.buzz1 = true; toast('Es spricht sich herum im Grätzl!', 'Dein gutes Essen lockt immer mehr Leute an.'); say(60, 340, 'Captain, des spricht si herum! Es kommen immer mehr!', 3600, 'Mira'); }
+        if (gap < 10.5 && !S.buzz1) { S.buzz1 = true; toast('Es spricht sich herum im Grätzl!', 'Dein gutes Essen lockt immer mehr Leute an.'); say(60, 340, 'Captain, des spricht si herum! Es kommen immer mehr!', 3600, 'Rolf'); }
         if (gap < 7 && !S.buzz2) { S.buzz2 = true; toast('Jetzt is richtig was los!', 'Das halbe Grätzl steht schon an.'); say(342, 330, 'Volle Kraft voraus, Crew!', 3200, 'Captain Dave'); }
       }
       // Rettungstour mit Jakob
       if (S.refilling > 0) { S.refilling -= dt; jakobTick(); }
       calmTick();
-      // Mira unterhält die Leute
+      // Rolf unterhält die Leute
       S.banterIn -= dt;
       if (S.banterIn <= 0) { banter(); S.banterIn = rand(18, 28); }
       // Ungeduld
@@ -1769,9 +1881,9 @@
         n.waited += dt;
         if (!n.gaveUp && !n.inDebate && n.wish !== 'egal' && n.wish !== 'fleisch' && n.waited > 50) {
           n.gaveUp = true; n.wish = 'egal'; renderWish(n);
-          if (bubbles.children.length < 3) n.bubble = say(n.x, QY - 162, pick(GIVE_UP), 3400, n.name);
+          n.bubble = say(n.x, QY - 162, pick(GIVE_UP), 3400, n.name, { low: true, xf: () => n.x });
         }
-        if (!n.talkedWait && n.waited > 16 + i * 2 && Math.random() < 0.004) { n.talkedWait = true; if (S.calmUntil > S.elapsed) { if (performance.now() - lastTalk > 3500 && bubbles.children.length < 2) { lastTalk = performance.now(); n.bubble = say(n.x, QY - 162, pick(CALM_LINES), 4200, n.name); } } else maybeSay(n, 'wait'); }
+        if (!n.talkedWait && n.waited > 16 + i * 2 && Math.random() < 0.004) { n.talkedWait = true; if (S.calmUntil > S.elapsed) { if (performance.now() - lastTalk > 3500) { lastTalk = performance.now(); n.bubble = say(n.x, QY - 162, pick(CALM_LINES), 4200, n.name, { low: true, xf: () => n.x }); } } else maybeSay(n, 'wait'); }
       });
     }
 
@@ -1900,7 +2012,7 @@
       jakobAt(170);
     }, 1200 * T);
     setTimeout(() => { $('jakob').classList.remove('rolling'); }, 3700 * T);
-    setTimeout(() => { say(60, 340, 'Servus! I bin die Mira und schnippel heut für euch.', 3200, 'Mira'); }, 6200 * T);
+    setTimeout(() => { say(60, 340, 'Ahoi! I bin da Rolf, da Smutje auf dem Radschiff. I schnippel heut für euch!', 3200, 'Rolf'); }, 6200 * T);
     setTimeout(() => { $('flame').setAttribute('opacity', '1'); }, 4400 * T);
     setTimeout(() => { $('steam').setAttribute('opacity', '1'); say(342, 330, pick(CAPTAIN_LINES), 3200, 'Captain Dave'); }, 5000 * T);
     setTimeout(() => {
@@ -1919,22 +2031,44 @@
     const b = $('ov-body');
     b.innerHTML = '';
     body.forEach((t) => { const p = document.createElement('p'); p.style.margin = '0 0 8px'; p.textContent = t; b.append(p); });
-    $('ov-start').textContent = 'Nochmal spielen';
+    $('ov-start').textContent = 'Tageskiste nochmal';
+    $('ov-free').textContent = 'Freies Spiel';
     $('ov-crew').hidden = !crew;
+    $('ov-share').hidden = !(S.daily && S.lastResult);
+    $('ov-graetzl').hidden = true;
     $('overlay').hidden = false;
   }
   let bestServed = 0;
   try { bestServed = Number(localStorage.getItem('rk-best-served') || 0); } catch (e) { bestServed = 0; }
+  const MONTHS_L = ['Jänner', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+  const DAY_LABEL = TODAY.getDate() + '. ' + MONTHS_L[TODAY.getMonth()];
+  function dayBest() { try { return Number(localStorage.getItem('rk-day-' + DAY_KEY) || 0); } catch (e) { return 0; } }
+  function shareResult() {
+    const r = S.lastResult || { served: 0, hits: 0 };
+    const url = location.href.split('#')[0].split('?')[0];
+    const text = `Radküche · Tageskiste ${DAY_LABEL}: ${r.served} Nachbarn versorgt, ${r.hits} Wünsche erfüllt 🍲🌻 Schaffst du mehr?`;
+    (async () => {
+      try {
+        if (navigator.share) { await navigator.share({ title: 'Die Radküche', text, url }); return; }
+        await navigator.clipboard.writeText(text + ' ' + url);
+        toast('Kopiert!', 'Füg es in WhatsApp, Signal oder wo du magst ein.');
+      } catch (e) { toast('Teilen hat gerade nicht geklappt.'); }
+    })();
+  }
   function timeUp() {
     if (S.phase !== 'play') return;
     Music.stop(); Music.sfx('win');
+    S.lastResult = { served: S.served, hits: S.wishHits };
+    let dayRec = false;
+    if (S.daily && S.served > dayBest()) { dayRec = true; try { localStorage.setItem('rk-day-' + DAY_KEY, String(S.served)); } catch (e) { /* egal */ } }
     const record = S.served > bestServed;
     if (record) { bestServed = S.served; try { localStorage.setItem('rk-best-served', String(bestServed)); } catch (e) { /* egal */ } }
     celebrate();
     endScreen(record ? 'Neuer Rekord!' : 'Feierabend in der Radküche!',
       `${S.served} Nachbarinnen und Nachbarn versorgt.`,
       [`Davon hast du ${S.wishHits} Wünsche genau erfüllt, ${S.converted ? `Leolitta hat ${S.converted} Fleischesser zum Probieren überredet, ` : ''}${S.feasts ? `es gab ${S.feasts === 1 ? 'einen Festtruthahn' : S.feasts + ' Festtruthähne'}, ` : ''}${S.dishes} ${S.dishes === 1 ? 'Gericht' : 'Gerichte'} gekocht und ${S.flowers} Blumen gepflanzt. ${S.bees.length} Hummeln summen jetzt durch die Straße.`,
-       `Dein Rekord: ${bestServed} Versorgte in 5 Minuten. Punkte: ${S.score}.`,
+       S.daily ? `Tageskiste ${DAY_LABEL}: Dein bester Versuch heute: ${dayBest()} Versorgte.${dayRec ? ' Neuer Tagesrekord!' : ''} Morgen gibt’s eine neue Kiste.` : `Dein Rekord: ${bestServed} Versorgte in 5 Minuten. Punkte: ${S.score}.`,
+       grStats(),
        record ? 'Des is ka Rekord, des is a Liebeserklärung ans Grätzl!' : 'Schaffst du nächstes Mal mehr? Tipp: Schau, was die meisten wollen, und koch genau das.',
        'Und das Schönste: Das geht auch in echt. Komm in die Crew!'], true);
   }
@@ -1969,7 +2103,7 @@
     plantLayer.innerHTML = '';
     ivyLayer.innerHTML = '';
     beeLayer.innerHTML = '';
-    bubbles.innerHTML = '';
+    clearTalk();
     $('meadow').setAttribute('opacity', '0');
     $('tree1').classList.remove('grown');
     $('tree2').classList.remove('grown');
@@ -2000,9 +2134,12 @@
     $('talklog').innerHTML = '<li class="empty">Noch ist es ruhig auf der Straße.</li>';
   }
 
-  function startGame() {
+  function startGame(daily) {
     resetScene();
     S = freshState();
+    S.daily = !!daily;
+    if (S.daily) { S.crateNo = 0; S.crate = newCrate(dayRng(5000)); }
+    restoreGraetzl();
     renderCrate();
     renderPotList();
     renderPotVisual();
@@ -2011,10 +2148,28 @@
   }
 
   // ----- Knöpfe -----
+  function begin(daily) {
+    $('overlay').hidden = true;
+    enterGame();
+    startGame(daily);
+    Music.start();
+    syncSound();
+  }
+  $('ov-free').addEventListener('click', () => begin(false));
+  $('ov-share').addEventListener('click', shareResult);
+  $('ov-reset').addEventListener('click', () => {
+    const b = $('ov-reset');
+    if (!b.dataset.sure) { b.dataset.sure = '1'; b.textContent = 'Wirklich? Alles wird wieder grau. Nochmal tippen'; return; }
+    G = { meadow: [], roof: [], green: [false, false, false, false], seen: [] }; saveG();
+    plantLayer.innerHTML = ''; ivyLayer.innerHTML = ''; beeLayer.innerHTML = ''; S.bees = []; S.targets = [];
+    restoreGraetzl();
+    b.textContent = 'Grätzl ist wieder grau. Auf ein Neues!'; delete b.dataset.sure;
+    $('ov-graetzl').textContent = grStats();
+  });
   $('ov-start').addEventListener('click', () => {
     $('overlay').hidden = true;
     enterGame();
-    startGame();
+    startGame(true);
     Music.start();
     syncSound();
   });
@@ -2102,11 +2257,14 @@
   S = freshState();
   renderStatic();
   renderBook();
+  restoreGraetzl();
+  $('ov-graetzl').textContent = grStats();
+  $('ov-day').textContent = 'Tageskiste vom ' + DAY_LABEL + ': heute für alle gleich, dieselben Zutaten und dieselben Nachbarn.' + (dayBest() ? ' Dein bester Versuch heute: ' + dayBest() + ' Versorgte.' : '');
   renderCrate();
   renderPotList();
   updateHud();
   requestAnimationFrame(frame);
 
   // Für Tests
-  window.__radkueche = { judge, newCrate, feast: (k) => feast(k || 'reward'), state: () => S, setCrate: (c) => { S.crate = c; renderCrate(); } };
+  window.__radkueche = { judge, newCrate, G: () => G, dayRng, feast: (k) => feast(k || 'reward'), state: () => S, setCrate: (c) => { S.crate = c; renderCrate(); } };
 })();

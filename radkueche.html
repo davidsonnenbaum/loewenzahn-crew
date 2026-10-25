@@ -8,8 +8,8 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&amp;family=Nunito:wght@400;600;700&amp;family=Caveat:wght@600&amp;display=swap">
-<link rel="stylesheet" href="radkueche.css?v=20261025c">
-<script src="radkueche.js?v=20261025c" defer></script>
+<link rel="stylesheet" href="radkueche.css?v=20261025d">
+<script src="radkueche.js?v=20261025d" defer></script>
 </head>
 <body>
 <div class="page">
@@ -56,6 +56,23 @@
 <rect x="0" y="484" width="1200" height="76" fill="#A9A49C"></rect>
 <path d="M0 484 L1200 484" stroke="#7E7973" stroke-width="3"></path>
 <path id="meadow" d="M0 490 Q150 478 300 488 Q480 500 660 486 Q860 472 1040 490 Q1120 498 1200 486 L1200 560 L0 560 Z" fill="#B9D29C" opacity="0"></path>
+<g id="deco-bunting" opacity="0" class="deco">
+<path d="M200 168 Q600 216 1000 168" fill="none" stroke="#3B2A1E" stroke-width="2"></path>
+<path d="M260 178 L270 198 L280 180 Z" fill="#D7322B"></path><path d="M340 188 L350 208 L360 190 Z" fill="#F2B530"></path><path d="M420 195 L430 215 L440 197 Z" fill="#3C6FD1"></path><path d="M500 199 L510 219 L520 200 Z" fill="#7FA36F"></path><path d="M580 201 L590 221 L600 201 Z" fill="#E8792F"></path><path d="M660 200 L670 220 L680 199 Z" fill="#D7322B"></path><path d="M740 196 L750 216 L760 195 Z" fill="#F2B530"></path><path d="M820 190 L830 210 L840 188 Z" fill="#3C6FD1"></path><path d="M900 181 L910 201 L920 179 Z" fill="#7FA36F"></path>
+</g>
+<g id="deco-bench" opacity="0" class="deco">
+<rect x="880" y="520" width="90" height="7" rx="3" fill="#8A5A3C"></rect><rect x="880" y="506" width="90" height="6" rx="3" fill="#8A5A3C"></rect><rect x="886" y="527" width="6" height="18" fill="#6B4A32"></rect><rect x="958" y="527" width="6" height="18" fill="#6B4A32"></rect>
+<circle cx="878" cy="540" r="7" fill="#F5C518"></circle><circle cx="978" cy="538" r="6" fill="#D7322B"></circle>
+</g>
+<g id="deco-market" opacity="0" class="deco">
+<path d="M1040 470 L1140 470 L1132 486 L1048 486 Z" fill="#3C6FD1"></path><path d="M1060 470 L1064 486 M1084 470 L1086 486 M1108 470 L1108 486" stroke="#FFFFFF" stroke-width="7"></path>
+<rect x="1048" y="486" width="84" height="40" fill="#E9DCC4"></rect><rect x="1048" y="486" width="84" height="8" fill="#C8925A"></rect>
+<rect x="1058" y="476" width="8" height="10" rx="2" fill="#E8792F"></rect><rect x="1074" y="474" width="8" height="12" rx="2" fill="#7FA36F"></rect><rect x="1090" y="476" width="8" height="10" rx="2" fill="#D7322B"></rect><rect x="1106" y="475" width="8" height="11" rx="2" fill="#F2B530"></rect>
+</g>
+<g id="deco-sign" opacity="0" class="deco">
+<rect x="470" y="430" width="4" height="60" fill="#5D5954"></rect><rect x="436" y="410" width="72" height="26" rx="5" fill="#3C6FD1" stroke="#FFFFFF" stroke-width="2"></rect>
+<text x="472" y="427" text-anchor="middle" font-family="'Bricolage Grotesque', sans-serif" font-weight="800" font-size="9" fill="#FFFFFF">BEGEGNUNG</text>
+</g>
 <g id="plants"></g>
 <g id="nifbike" style="transform: translate(1450px, 414px)"><g transform="scale(.85)">
 <g class="wheel"><circle cx="-40" cy="-14" r="14" fill="none" stroke="#3B2A1E" stroke-width="4"></circle><line x1="-40" y1="-26" x2="-40" y2="-2" stroke="#3B2A1E" stroke-width="1.5"></line><line x1="-52" y1="-14" x2="-28" y2="-14" stroke="#3B2A1E" stroke-width="1.5"></line></g>
@@ -131,13 +148,20 @@
 </g>
 <g id="mira" style="transform: translateX(-260px); transition: transform 2.2s cubic-bezier(.2,.7,.3,1)">
 <path d="M34 476 L36 438 M48 476 L46 438" stroke="#3B2A1E" stroke-width="7" stroke-linecap="round"></path>
-<rect x="27" y="392" width="30" height="50" rx="11" fill="#5E7F5A"></rect>
-<path d="M31 404 L53 404 L55 442 L29 442 Z" fill="#FFFFFF" opacity=".92"></path>
-<g id="mira-arms"><path d="M30 404 L22 424 M54 404 L64 422" stroke="#5E7F5A" stroke-width="7" stroke-linecap="round"></path></g>
-<circle cx="42" cy="374" r="14" fill="#C69468"></circle>
-<circle cx="47" cy="372" r="1.7" fill="#3B2A1E"></circle><circle cx="39" cy="372" r="1.7" fill="#3B2A1E"></circle>
-<path d="M38 380 Q43 384 48 379" fill="none" stroke="#3B2A1E" stroke-width="1.6" stroke-linecap="round"></path>
-<path d="M28 370 Q42 352 56 370 Q49 364 42 364 Q35 364 28 370 Z" fill="#D7322B"></path><circle cx="27" cy="372" r="3.4" fill="#D7322B"></circle>
+<rect x="27" y="392" width="30" height="50" rx="11" fill="#FFFFFF"></rect>
+<path d="M27 401 H57 M27 410 H57 M27 419 H57 M27 428 H57 M28 437 H56" stroke="#2B3A55" stroke-width="4"></path>
+<path d="M31 404 L53 404 L55 442 L29 442 Z" fill="#E9DCC4" opacity=".95"></path>
+<g id="mira-arms"><path d="M30 404 L22 424 M54 404 L64 422" stroke="#2B3A55" stroke-width="7" stroke-linecap="round"></path></g>
+<circle cx="42" cy="374" r="14" fill="#E8B98E"></circle>
+<path d="M30 380 Q31 390 42 391 Q53 390 54 380 Q48 384 42 384 Q36 384 30 380 Z" fill="#B8662E"></path>
+<circle cx="38.5" cy="372" r="1.8" fill="#3B2A1E"></circle>
+<path d="M29 366 L56 378" stroke="#1E1A17" stroke-width="1.6"></path>
+<ellipse cx="47" cy="372.5" rx="4.6" ry="3.8" fill="#1E1A17"></ellipse>
+<path d="M38 381 Q42 384 46 380" fill="none" stroke="#3B2A1E" stroke-width="1.6" stroke-linecap="round"></path>
+<path d="M22 366 Q30 352 42 351 Q54 352 62 366 Q52 360 42 361 Q32 360 22 366 Z" fill="#1E1A17"></path>
+<path d="M27 359 Q42 342 57 359 Q49 355 42 355 Q35 355 27 359 Z" fill="#2A2420"></path>
+<path d="M24 364 Q42 356 60 364" fill="none" stroke="#E2B74A" stroke-width="1.6"></path>
+<circle cx="42" cy="353" r="2.6" fill="#FFFFFF"></circle><path d="M39 357 L45 360 M45 357 L39 360" stroke="#FFFFFF" stroke-width="1.2"></path>
 <g id="juggle" opacity="0"><circle class="ball b1" cx="42" cy="404" r="5.5" fill="#D9B26F"></circle><circle class="ball b2" cx="42" cy="404" r="5.5" fill="#E8792F"></circle><circle class="ball b3" cx="42" cy="404" r="5.5" fill="#C9463D"></circle></g>
 </g>
 <g id="jakob" style="transform: translate(-420px, 552px); transition: transform 2.4s cubic-bezier(.45,.05,.55,.95)">
@@ -234,6 +258,7 @@
 <p class="kicker" id="ov-kicker">Bereit, Captain?</p>
 <h2 class="ov-title" id="ov-title">Die Radküche öffnet gleich</h2>
 <div id="ov-body" class="ov-body">
+<details class="howto-box"><summary>So geht’s (kurz aufklappen)</summary>
 <ol class="howto">
 <li>Tipp die Zutaten unter der Straße an. Sie fliegen direkt in den Topf der Radküche. <strong>Die Reihenfolge zählt!</strong></li>
 <li>Drück auf <strong>Abschmecken</strong>. Wenn’s brennt, ruf deine Crew: <strong>Leolitta</strong> kocht ein Meistergericht und erklärt es, und <strong>Nif</strong> beruhigt die Schlange mit Kräutertee. Die Jury bewertet mit 1 bis 3 Kochlöffeln. Je besser das Gericht, desto mehr Nachbarn werden satt und desto mehr <strong>Samen</strong> bekommst du.</li>
@@ -241,11 +266,17 @@
 </ol>
 <p class="ov-goal">Jeder Nachbar hat einen Wunsch über dem Kopf. Brot, Wasser und Obst (grüner Rahmen mit Häkchen) gibst du direkt, indem du auf die Person tippst. Suppe, Deftiges, Süßes oder Scharfes musst du kochen. Wie viele schaffst du in 5 Minuten?</p>
 <p class="note portrait-hint" style="margin:8px 0 0">Am Handy macht es quer gehalten am meisten Spaß.</p>
+</details>
 </div>
+<p class="ov-day" id="ov-day"></p>
+<p class="ov-graetzl" id="ov-graetzl"></p>
 <div class="ov-actions">
-<button type="button" id="ov-start" class="btn-solid">Radküche öffnen</button>
+<button type="button" id="ov-start" class="btn-solid">Tageskiste spielen</button>
+<button type="button" id="ov-free" class="btn-line">Freies Spiel</button>
+<button type="button" id="ov-share" class="btn-gold" hidden>Ergebnis teilen</button>
 <a href="anheuern.html" id="ov-crew" class="btn-line" hidden>Komm in die echte Crew</a>
 </div>
+<button type="button" id="ov-reset" class="link-btn">Grätzl zurücksetzen</button>
 </div>
 </div>
 </div>

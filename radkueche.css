@@ -424,3 +424,13 @@ body.game-on .deck-btns > *{flex:0 0 auto}
 body.game-on .deck-btns .icon-btn{width:40px;height:40px;min-height:0}
 @media (max-height:520px){body.game-on .avatar-btn{width:40px;height:40px}body.game-on .icon-btn{width:34px !important;height:34px !important}}
 @media (max-width:640px){.avatar-btn{width:44px;height:44px}.call-label{display:none}}
+
+/* Tageskiste, Grätzl, Deko */
+.ov-day{margin:12px 0 0;padding:8px 12px;background:#F3E6C9;border-radius:12px;font-weight:700;font-size:15px}
+.ov-graetzl{margin:8px 0 0;font-size:15px;color:#2F5233;font-weight:700}
+.link-btn{margin-top:10px;background:none;border:0;padding:6px 0;color:#6B5A4A;font:600 13px 'Nunito',sans-serif;text-decoration:underline;cursor:pointer}
+.deco{transition:opacity 1.2s ease}
+.ov-actions .btn-gold{min-height:44px}
+.howto-box{background:#FBF6EA;border-radius:14px;padding:8px 12px;margin-top:6px}
+.howto-box summary{cursor:pointer;font-weight:800;color:#2F5233}
+.howto-box .howto{margin-top:8px}
