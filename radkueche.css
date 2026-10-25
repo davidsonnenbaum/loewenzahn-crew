@@ -288,3 +288,15 @@ button:disabled{opacity:.45;cursor:not-allowed}
   .deck-btns .btn-solid,.deck-btns .btn-line{padding:6px 12px;font-size:14px}
   .intro-row .lead{font-size:16px}
 }
+
+/* Oma Gerti */
+#gerti.walking .gbob{animation:bob .32s ease-in-out infinite alternate}
+.btn-gold{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:8px 18px;border:0;border-radius:999px;background:#F2B530;color:#3B2A1E;font:800 15px 'Nunito',sans-serif;cursor:pointer;box-shadow:0 3px 0 #C98F12}
+.btn-gold:hover:not(:disabled){background:#F5C24E}
+.v-master{margin:0 0 8px;padding:8px 12px;background:#EFE6F7;border-radius:12px;font-weight:700;font-size:15px}
+.recipes-panel{margin-top:18px}
+.recipes details{background:#FBF6EA;border-radius:14px;padding:10px 14px;margin-bottom:8px}
+.recipes summary{cursor:pointer;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:20px}
+.recipes ol{margin:10px 0 4px;padding-left:22px}
+.recipes li{margin-bottom:6px}
+.recipes .empty{margin:0;color:#6B5A4A}

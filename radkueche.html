@@ -128,6 +128,19 @@
 <circle cx="51" cy="-118" r="1.6" fill="#3B2A1E"></circle>
 <path d="M33 -120 Q46 -138 59 -120 Z" fill="#2F5233"></path><path d="M57 -121 L68 -119" stroke="#2F5233" stroke-width="4" stroke-linecap="round"></path>
 </g>
+<g id="gerti" style="transform: translateX(-420px); transition: transform 2s ease-in-out"><g class="gbob">
+<path d="M264 478 L265 448 M276 478 L275 448" stroke="#3B2A1E" stroke-width="6" stroke-linecap="round"></path>
+<path d="M254 454 L286 454 L282 430 L258 430 Z" fill="#7B5BB5"></path>
+<rect x="256" y="390" width="28" height="46" rx="10" fill="#9A7BD0"></rect>
+<path d="M260 402 L280 402 L283 452 L257 452 Z" fill="#FFFFFF" opacity=".92"></path>
+<path d="M283 404 L298 418" stroke="#9A7BD0" stroke-width="6" stroke-linecap="round"></path>
+<path d="M298 418 L306 396" stroke="#6B4A32" stroke-width="3.5" stroke-linecap="round"></path>
+<circle cx="270" cy="374" r="13" fill="#F1C9A5"></circle>
+<path d="M257 372 Q270 354 283 372 Q276 364 270 364 Q264 364 257 372 Z" fill="#D8D3C8"></path><circle cx="270" cy="357" r="7" fill="#D8D3C8"></circle>
+<circle cx="266" cy="375" r="3.4" fill="none" stroke="#3B2A1E" stroke-width="1.3"></circle><circle cx="275" cy="375" r="3.4" fill="none" stroke="#3B2A1E" stroke-width="1.3"></circle><line x1="269.4" y1="375" x2="271.6" y2="375" stroke="#3B2A1E" stroke-width="1.3"></line>
+<circle cx="262" cy="380" r="2" fill="#E7A6A1" opacity=".7"></circle><circle cx="279" cy="380" r="2" fill="#E7A6A1" opacity=".7"></circle>
+<path d="M266 382 Q270 385 275 381" fill="none" stroke="#3B2A1E" stroke-width="1.4" stroke-linecap="round"></path>
+</g></g>
 <g id="handplate" opacity="0" style="transform: translate(362px, 398px)"><ellipse cx="0" cy="0" rx="17" ry="5" fill="#FFFFFF" stroke="#D8CDB8" stroke-width="1.5"></ellipse><ellipse id="handfood" cx="0" cy="-3" rx="10" ry="4" fill="#C9A26B"></ellipse></g>
 <g id="bees" pointer-events="none"></g>
 </svg>
@@ -151,7 +164,7 @@
 <div id="ov-body" class="ov-body">
 <ol class="howto">
 <li>Tipp die Zutaten unter der Straße an. Sie fliegen direkt in den Topf der Radküche. <strong>Die Reihenfolge zählt!</strong></li>
-<li>Drück auf <strong>Abschmecken</strong>. Die Jury bewertet mit 1 bis 3 Kochlöffeln. Je besser das Gericht, desto mehr Nachbarn werden satt und desto mehr <strong>Samen</strong> bekommst du.</li>
+<li>Drück auf <strong>Abschmecken</strong>. Wenn’s brennt, ruf <strong>Oma Gerti</strong>: Sie kocht ein Meistergericht und erklärt dir jeden Schritt. Die Jury bewertet mit 1 bis 3 Kochlöffeln. Je besser das Gericht, desto mehr Nachbarn werden satt und desto mehr <strong>Samen</strong> bekommst du.</li>
 <li>Klick mit deinen Samen auf die Wiese vorne oder auf ein Haus. Blumen locken Hummeln an. Je mehr du versorgst und je mehr blüht, desto mehr spricht es sich herum, und desto mehr Leute kommen. Ist die Kiste leer, schick Jakob auf Rettungstour.</li>
 </ol>
 <p class="ov-goal">Versorg 20 Nachbarn, bevor die Schlange das andere Ende der Straße erreicht.</p>
@@ -184,6 +197,7 @@
 <button type="button" id="clear" class="btn-line">Ausleeren</button>
 <span class="spacer"></span>
 <span id="refill-note" class="note"></span>
+<button type="button" id="master" class="btn-gold">Meisterkoch rufen <span id="jokers">(1)</span></button>
 <button type="button" id="refill" class="btn-line">Jakob auf Rettungstour</button>
 <button type="button" id="sound" class="btn-line" aria-pressed="true">Musik: an</button>
 <button type="button" id="pause" class="btn-line">Pause</button>
@@ -201,6 +215,11 @@
 <h2 class="panel-h">Was die Leute sagen</h2>
 <ol id="talklog" class="talklog"><li class="empty">Noch ist es ruhig auf der Straße.</li></ol>
 </div>
+</section>
+<section class="panel recipes-panel" id="recipes-wrap" hidden>
+<h2 class="panel-h">Oma Gertis Rezeptbuch</h2>
+<p class="note" style="margin:0 0 10px">Jedes Mal, wenn Oma Gerti kocht, landet ihr Rezept hier, Schritt für Schritt mit dem Warum.</p>
+<div id="recipes" class="recipes"><p class="empty">Noch leer.</p></div>
 </section>
 </main>
 <div id="flyer" class="flyer-layer" aria-hidden="true"></div>

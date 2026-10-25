@@ -266,7 +266,7 @@
     const notes = [];
     if (spoons >= 2) { good.slice(0, 2).forEach((g) => notes.push(['good', g[1]])); bad.slice(0, 1).forEach((b) => notes.push(['bad', 'Tipp: ' + b[1]])); }
     else { bad.slice(0, 2).forEach((b) => notes.push(['bad', b[1]])); good.slice(0, 1).forEach((g) => notes.push(['good', 'Gut war: ' + g[1]])); }
-    return { spoons, dish, head: heads[spoons], notes };
+    return { spoons, dish, head: heads[spoons], notes, pts };
   }
 
   // ---------------------------------------------------------------
@@ -476,7 +476,7 @@
     return {
       phase: 'ready', served: 0, seeds: 0, score: 0, flowers: 0, roofs: [0, 0, 0, 0], green: [false, false, false, false],
       crate: newCrate(), pot: [], queue: [], leaving: [], bees: [], targets: [], spawnIn: 1.5, elapsed: 0, busy: false,
-      refilling: 0, paused: false, dishes: 0, nextId: 1, warm: 0, banterIn: 10, jakob: 'home'
+      refilling: 0, paused: false, dishes: 0, nextId: 1, warm: 0, banterIn: 10, jakob: 'home', jokers: 1, streak: 0, masterNext: null
     };
   }
 
@@ -713,6 +713,8 @@
     $('clear').disabled = !playing || !S.pot.length;
     $('refill').disabled = S.phase !== 'play' || S.refilling > 0 || S.paused;
     $('pause').disabled = S.phase !== 'play';
+    $('master').disabled = !playing || S.jokers <= 0;
+    $('jokers').textContent = '(' + S.jokers + ')';
     $('pause').textContent = S.paused ? 'Weiter' : 'Pause';
   }
   function addToPot(id, fromEl) {
@@ -895,7 +897,11 @@
     const portions = [0, 1, 2, 4][r.spoons];
     const feeds = Math.min(portions, S.queue.length);
     const kept = Math.max(0, Math.min(6 - S.warm, portions - feeds));
-    const points = [0, 20, 50, 100][r.spoons] + (r.dish ? 30 : 0);
+    let points = [0, 20, 50, 100][r.spoons] + (r.dish ? 30 : 0);
+    const master = S.masterNext;
+    S.masterNext = null;
+    if (master) points = Math.round(points / 2);
+    if (!master && r.spoons === 3) { S.streak += 1; if (S.streak % 3 === 0) setTimeout(() => earnJoker('Drei Gerichte mit 3 Kochlöffeln!'), 3000); }
     S.seeds += seeds;
     addScore(points);
     Music.sfx(r.spoons >= 2 ? 'ding' : 'meh');
@@ -914,9 +920,10 @@
       ? `${portions} ${portions === 1 ? 'Portion' : 'Portionen'}` + (feeds ? `, ${feeds} gleich ausgegeben` : '') + (kept > 0 ? `, ${kept} bleiben warm` : '') + ` · +${seeds} Samen · +${points} Punkte`
       : 'Keine Samen diesmal. Probier eine andere Reihenfolge!';
     v.append(rw);
+    if (master) { const g = document.createElement('p'); g.className = 'v-master'; g.textContent = 'Gekocht von Oma Gerti. Ihr Rezept mit allen Erklärungen steht unten im Rezeptbuch.'; v.prepend(g); }
     showJuryPop(r);
 
-    say(342, 330, pick(CAPTAIN_JOKES[r.spoons]), 3800, 'Captain Dave');
+    say(342, 330, master ? pick(['Danke, Oma Gerti! Des war a Lehrstunde.', 'Oma Gerti, du bist a Legende!', 'I glaub, i muss no viel lernen.']) : pick(CAPTAIN_JOKES[r.spoons]), 3800, 'Captain Dave');
     if (Math.random() < 0.5) setTimeout(() => say(60, 340, MIRA_REACT[r.spoons], 3200, 'Mira'), 1600);
 
     if (feeds) {
@@ -935,6 +942,170 @@
     syncButtons();
     updateHud();
     if (!Object.keys(S.crate).length && S.refilling <= 0) setTimeout(() => toast('Die Rettungskiste ist leer.', 'Schick Jakob auf Rettungstour!'), 2600);
+  }
+
+  // ---------------------------------------------------------------
+  // Bonus: Oma Gerti, die Meisterköchin aus dem Hof
+  // ---------------------------------------------------------------
+  const SPICE_SETS = [[], ['kuemmel'], ['majoran'], ['curry'], ['muskat'], ['kuemmel', 'majoran'], ['curry', 'muskat'], ['pfeffer']];
+  function buildPot(items, o) {
+    const types = (t) => items.filter((id) => ING[id].type === t);
+    const fruit = types('fruit');
+    const veg = items.filter((id) => ING[id].type !== 'fruit' && ING[id].type !== 'bread');
+    const bread = types('bread');
+    if (!veg.length && (fruit.length || bread.length)) {
+      // süß
+      const pot = [];
+      if (bread.length) pot.push('oel', ...bread);
+      pot.push(...fruit, 'zimt');
+      if (fruit.length && !bread.length && o.water) pot.push('wasser');
+      if (o.lemon) pot.push('zitrone');
+      return pot;
+    }
+    const pot = ['oel', 'zwiebel'];
+    if (o.garlic) pot.push('knoblauch');
+    pot.push(...types('hard'), ...types('legume'));
+    if (o.paprika) pot.push('paprikapulver');
+    const needsWater = types('hard').length || types('legume').length || o.soup;
+    if (needsWater || bread.length) pot.push('wasser');
+    pot.push(...types('medium'), ...bread, ...types('soft'), ...types('leafy'));
+    pot.push('salz', ...o.spices);
+    if (o.herbs) pot.push('kraeuter');
+    if (o.lemon) pot.push('zitrone');
+    return pot;
+  }
+  function subsets(arr, max) {
+    const out = [];
+    const rec = (start, cur) => {
+      if (cur.length) out.push(cur.slice());
+      if (cur.length === max) return;
+      for (let i = start; i < arr.length; i++) { cur.push(arr[i]); rec(i + 1, cur); cur.pop(); }
+    };
+    rec(0, []);
+    return out;
+  }
+  function planMaster() {
+    const avail = Object.keys(S.crate).filter((id) => S.crate[id] > 0);
+    let best = null;
+    subsets(avail, 3).forEach((items) => {
+      [false, true].forEach((garlic) => [false, true].forEach((paprika) => SPICE_SETS.forEach((spices) => [false, true].forEach((herbs) => [false, true].forEach((lemon) => {
+        const pot = buildPot(items, { garlic, paprika, spices, herbs, lemon, water: true, soup: items.length >= 2 });
+        const r = judge(pot);
+        const score = r.spoons * 1000 + (r.dish ? 300 : 0) + r.pts * 10 - pot.length;
+        if (!best || score > best.score) best = { pot, r, score };
+      })))));
+    });
+    return best;
+  }
+  function explainStep(id, pot) {
+    const sweet = !pot.some((x) => ING[x] && !['fruit', 'bread'].includes(ING[x].type));
+    if (ING[id]) {
+      const t = ING[id].type;
+      const n = ING[id].name;
+      const pl = ['kartoffeln', 'karotten', 'rueben', 'linsen', 'pastinaken', 'aepfel', 'bananen', 'birnen', 'zwetschken', 'tomaten', 'pilze', 'erdbeeren', 'marillen', 'radieschen'].includes(id);
+      const v = (one, many) => (pl ? many : one);
+      if (t === 'bread') return sweet ? 'Altes Brot, des is die beste Grundlage für a süße Speis.' : 'Des alte Brot kommt rein und macht die Suppe sämig.';
+      if (t === 'fruit') return n + v(' bringt', ' bringen') + ' die Süße, da braucht’s fast keinen Zucker.';
+      if (t === 'hard') return n + v(' kommt', ' kommen') + ' früh in den Topf, weil' + v(' sie', ' sie') + ' am längsten ' + v('braucht', 'brauchen') + '.';
+      if (t === 'legume') return n + ' brauchen Zeit und Flüssigkeit, drum kommen’s bald hinein.';
+      if (t === 'medium') return n + v(' braucht', ' brauchen') + ' mittellang, drum erst nach dem Harten.';
+      if (t === 'soft') return n + ' erst später, sonst ' + v('zerfällt’s', 'zerfallen’s') + ' zu Gatsch.';
+      if (t === 'leafy') return n + ' nur kurz vor Schluss, damit’s schön grün bleibt.';
+    }
+    const why = {
+      oel: sweet ? 'A bissl Öl, damit das Brot knusprig anröstet.' : 'Zuerst a Schuss Öl, damit nix anbrennt und alles schön anröstet.',
+      zwiebel: 'Dann d’Zwiebel. Die muss glasig werden, das ist die Grundlage für den Geschmack.',
+      knoblauch: 'Knoblauch erst nach der Zwiebel, sonst verbrennt er und wird bitter.',
+      wasser: sweet ? 'A Schluck Wasser, damit das Obst weich und saftig wird.' : 'Jetzt mit Wasser aufgießen und schön köcheln lassen.',
+      paprikapulver: 'Paprikapulver nur ganz kurz mitrösten und gleich ablöschen, sonst wird’s bitter.',
+      salz: 'A Prise Salz. Ohne Salz schmeckt alles nach nix.',
+      pfeffer: 'A bissl Pfeffer für die Wärme.',
+      kuemmel: 'Kümmel, wie bei meiner Mutter. Der macht’s bekömmlich.',
+      majoran: 'Majoran, des is das Wiener Geheimnis.',
+      curry: 'A bissl Curry, des wärmt von innen.',
+      muskat: 'A Prise Muskat hebt den Geschmack, aber wirklich nur a Prise.',
+      zimt: 'Zimt passt zu Obst wie der Deckel auf den Topf.',
+      chili: 'A Hauch Chili, aber vorsichtig.',
+      kraeuter: 'Frische Kräuter ganz am Schluss, damit sie frisch schmecken.',
+      zitrone: 'Und a Spritzer Zitrone zum Schluss. Der weckt alles auf.'
+    };
+    return why[id] || NAME(id) + '.';
+  }
+  const GERTI_HELLO = ['Lass mi amoi, Bub! Die Oma zeigt dir, wie’s geht.', 'Platz da, jetzt kocht die Gerti!', 'Na geh, Captain, gib her den Kochlöffel.'];
+  const GERTI_BYE = ['So, jetzt du wieder. Du kannst des eh!', 'Merk dir’s gut, i bin ned ewig da!', 'Und immer mit Liebe kochen, gell?'];
+  function gertiAt(x) { $('gerti').style.transform = `translateX(${x}px)`; }
+
+  async function masterCook() {
+    if (S.phase !== 'play' || S.busy || S.jokers <= 0) return;
+    const avail = Object.keys(S.crate).filter((id) => S.crate[id] > 0);
+    if (!avail.length) { toast('Die Kiste ist leer.', 'Ohne Zutaten kann auch Oma Gerti nix zaubern. Schick Jakob los!'); return; }
+    S.jokers -= 1;
+    S.busy = true;
+    clearPot();
+    syncButtons();
+    const plan = planMaster();
+    // Oma Gerti kommt aus dem Hof
+    $('gerti').classList.add('walking');
+    gertiAt(0);
+    await wait(2000);
+    $('gerti').classList.remove('walking');
+    say(270, 350, pick(GERTI_HELLO), 3000, 'Oma Gerti');
+    await wait(1400);
+    const steps = [];
+    const target = potMouthScreen();
+    for (const id of plan.pot) {
+      const tileEl = document.querySelector(`.tile[data-id="${id}"]`);
+      const from = tileEl ? (tileEl.querySelector('svg') || tileEl) : $('gerti');
+      const flight = new Promise((res) => fly(from, iconSvg(id, 40), target.x, target.y, 40, res, { ms: 480 }));
+      if (ING[id]) {
+        S.crate[id] -= 1;
+        if (S.crate[id] <= 0) delete S.crate[id];
+        renderCrate();
+      }
+      S.pot.push(id);
+      renderPotList();
+      steps.push([id, explainStep(id, plan.pot)]);
+      await flight;
+      splash(id);
+      Music.sfx('plop');
+      renderPotVisual();
+      await wait(140);
+    }
+    S.busy = false;
+    S.masterNext = { dish: plan.r.dish, steps };
+    addRecipe(plan.r.dish || 'Omas Resteküche', steps);
+    cook();
+    setTimeout(() => {
+      say(270, 350, pick(GERTI_BYE), 3200, 'Oma Gerti');
+      setTimeout(() => { $('gerti').classList.add('walking'); gertiAt(-420); setTimeout(() => $('gerti').classList.remove('walking'), 2000); }, 2600);
+    }, 4200);
+  }
+
+  function addRecipe(name, steps) {
+    const book = $('recipes');
+    const empty = book.querySelector('.empty');
+    if (empty) empty.remove();
+    const d = document.createElement('details');
+    d.open = true;
+    book.querySelectorAll('details').forEach((x) => { x.open = false; });
+    const s = document.createElement('summary');
+    s.textContent = name + ' nach Oma Gerti';
+    const ol = document.createElement('ol');
+    steps.forEach(([id, why]) => {
+      const li = document.createElement('li');
+      const b = document.createElement('strong'); b.textContent = NAME(id) + ': ';
+      li.append(b, document.createTextNode(why));
+      ol.append(li);
+    });
+    d.append(s, ol);
+    book.prepend(d);
+    $('recipes-wrap').hidden = false;
+  }
+
+  function earnJoker(reason) {
+    S.jokers += 1;
+    syncButtons();
+    toast('Oma Gerti hat wieder Zeit!', reason + ' Du kannst sie noch einmal rufen.');
   }
 
   function feedFront(count, spoons, handed) {
@@ -988,6 +1159,7 @@
     S.flowers += 1;
     S.seeds -= 1;
     addScore(10);
+    if (S.flowers % 12 === 0) earnJoker('12 neue Blumen im Grätzl!');
     $('meadow').setAttribute('opacity', String(Math.min(1, S.flowers / 22)));
     if (S.flowers >= 8) $('tree1').classList.add('grown');
     if (S.flowers >= 18) $('tree2').classList.add('grown');
@@ -1286,6 +1458,7 @@
     const mira = $('mira'); mira.style.transition = 'none'; mira.style.transform = 'translateX(-260px)'; void mira.getBBox(); mira.style.transition = '';
     const jk = $('jakob'); jk.style.transition = 'none'; jakobAt(-420); void jk.getBBox(); jk.style.transition = '';
     $('jakob-load').setAttribute('opacity', '0');
+    const ge = $('gerti'); ge.style.transition = 'none'; ge.style.transform = 'translateX(-420px)'; void ge.getBBox(); ge.style.transition = '';
     $('talklog').innerHTML = '<li class="empty">Noch ist es ruhig auf der Straße.</li>';
   }
 
@@ -1321,6 +1494,7 @@
     if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && strip.scrollWidth > strip.clientWidth) { strip.scrollLeft += e.deltaY; e.preventDefault(); }
   }, { passive: false });
   $('cook').addEventListener('click', cook);
+  $('master').addEventListener('click', masterCook);
   $('undo').addEventListener('click', undo);
   $('clear').addEventListener('click', clearPot);
   $('refill').addEventListener('click', refill);
