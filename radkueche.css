@@ -402,3 +402,9 @@ body.game-on .deck-btns > *{flex:0 0 auto}
 .r-game{margin:8px 0 0;padding:8px 12px;background:#E3F0D8;border-radius:12px;font-size:14px}
 .r-sub{margin:22px 0 4px;font-family:'Bricolage Grotesque',sans-serif;font-size:20px}
 @media (max-width:640px){.r-items{columns:1}}
+
+/* Festtruthahn */
+.feastglow{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity 1s ease;background:radial-gradient(ellipse at 50% 70%,rgba(255,214,102,.55) 0%,rgba(255,214,102,.18) 40%,rgba(255,214,102,0) 70%)}
+.feastglow.on{opacity:1;animation:feastpulse 1.6s ease-in-out infinite alternate}
+@keyframes feastpulse{from{filter:brightness(1)}to{filter:brightness(1.25)}}
+#turkey{transition:opacity .4s ease}

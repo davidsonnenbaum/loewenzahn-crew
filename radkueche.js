@@ -442,6 +442,7 @@
       if (kind === 'ding') { tone(NOTE('E6'), t, 0.35, 'sine', 0.5); tone(NOTE('G6'), t + 0.1, 0.45, 'sine', 0.4); }
       if (kind === 'meh') { tone(NOTE('E4'), t, 0.3, 'triangle', 0.5); tone(NOTE('C4'), t + 0.22, 0.45, 'triangle', 0.5); }
       if (kind === 'win') ['C5', 'E5', 'G5', 'C6', 'E6'].forEach((n, i) => accordion(NOTE(n), t + i * 0.13, 0.5));
+      if (kind === 'feast') { ['C5', 'E5', 'G5', 'C6'].forEach((n, i) => accordion(NOTE(n), t + i * 0.12, 0.4)); ['G5', 'C6', 'E6', 'G6', 'C6'].forEach((n, i) => accordion(NOTE(n), t + 0.6 + i * 0.12, 0.45)); }
       if (kind === 'lose') ['G4', 'F#4', 'F4', 'E4'].forEach((n, i) => tone(NOTE(n), t + i * 0.32, 0.45, 'triangle', 0.5));
       if (kind === 'bike') { tone(NOTE('A5'), t, 0.12, 'square', 0.25); tone(NOTE('A5'), t + 0.16, 0.12, 'square', 0.25); }
     }
@@ -560,7 +561,7 @@
     return {
       phase: 'ready', served: 0, seeds: 0, score: 0, flowers: 0, roofs: [0, 0, 0, 0], green: [false, false, false, false],
       crate: newCrate(), pot: [], queue: [], leaving: [], bees: [], targets: [], spawnIn: 1.5, elapsed: 0, busy: false,
-      refilling: 0, paused: false, dishes: 0, nextId: 1, warm: [], banterIn: 10, jakob: 'home', jk: { leolita: 1, nif: 1 }, converted: 0, leoBusy: false, debating: false, nextDebate: 0, wishHits: 0, givenDirect: 0, streak: 0, masterNext: null, calmUntil: 0, nifBusy: false
+      refilling: 0, paused: false, dishes: 0, nextId: 1, warm: [], banterIn: 10, jakob: 'home', jk: { leolita: 1, nif: 1 }, converted: 0, feastMark: 0, feasts: 0, rescueTried: false, rescueDone: false, feasting: false, leoBusy: false, debating: false, nextDebate: 0, wishHits: 0, givenDirect: 0, streak: 0, masterNext: null, calmUntil: 0, nifBusy: false
     };
   }
 
@@ -636,7 +637,7 @@
     if (S.queue.length >= QUEUE_MAX) lose();
   }
   function layoutQueue() {
-    S.queue.forEach((n, i) => { n.tx = QX0 + i * QGAP; });
+    S.queue.forEach((n, i) => { if (!n.feast) n.tx = QX0 + i * QGAP; });
   }
 
   // ----- Bilder der Zutaten -----
@@ -899,6 +900,7 @@
     ['Captain, is des Schiff eigentlich seetauglich?', 'Na. Aber grätzltauglich, und des is wichtiger.']
   ];
   function banter() {
+    if (S.feasting) return;
     if (bubbles.children.length >= 2) return;
     const r = Math.random();
     if (r < 0.35) {
@@ -1157,21 +1159,24 @@
   // Leolitta, die Tierrechtlerin: diskutiert direkt, aber mit Herz
   // ---------------------------------------------------------------
   const LEO_OPEN = [
-    'Hearst, wos hast’n do g’sagt? Fleisch? Des geht si bei mir gar ned aus!',
-    'A Schnitzerl? Bei da Radküch? Do bist an da falschen Adress, Freind!',
-    'Wos? A Wurstsemmel wüllst? Waßt du überhaupt, wos des Viech mitg’macht hat?'
+    'Wos? Fleisch? Bist du deppert? ... Na, du ned. Aber dei Bestellung scho!',
+    'Do hint hat wer a Leich bestellt! Wer war des? Raus mit da Sprach!',
+    'Grüß di! Du wüllst also a totes Viech? Na servas, a Romantiker!',
+    'A Schnitzerl? Bei da Radküch? Do bist an da falschen Adress, Freind!'
   ];
   const DEBATE_PAIRS = [
-    ['Aber Fleisch is doch natürlich!', 'Natürlich? Im Stall is gar nix natürlich. Die Viecher sehn nia an Himmel!'],
-    ['Des hamma immer scho so g’macht.', 'Früher hamma a mit Kohle g’heizt. Ma derf a gscheiter werden, gö!'],
+    ['Aber a Viech is doch zum Essen da!', 'Ah so? Dann servier i morgen Dackelgulasch. Is eh a Viech! ... Na? Schaust jetzt bled, gö?'],
+    ['Fleisch g’hört halt dazu!', 'Guat, dann gibt’s morgen Nachbarschnitzel, frisch aus’m Stiegenhaus! ... Schmäh. Aber merkst was?'],
+    ['Mei Opa hat jeden Tag Fleisch g’essen und is 90 worden!', 'Und mei Opa hat 60 Joahr g’raucht. Is des jetzt a Gesundheitstipp?'],
+    ['Die Viecher spürn doch eh nix.', 'Des sagt der Metzger a. Und der kriagt a ka Mitleid von mir.'],
+    ['I brauch halt was zum Beißen.', 'Dann beiß in an Kohlrabi. Der schreit wenigstens ned.'],
+    ['Aber Hendl is doch ka richtiges Fleisch.', 'Sag des amoi dem Hendl. Des sieht des ganz anders!'],
     ['Und wo krieg i dann mei Eiweiß her?', 'Linsen, Bohnen, Erbsen, Tofu. Do steckt gnua drin, und ka Viech muass dafür leidn.'],
     ['Aber i kauf eh nur Bio!', 'Bio hoaßt ned, dass des Schwein gern stirbt. Des wüll a ned sterbn, gnau wia du.'],
-    ['A bissl Fleisch schadt doch ned.', 'Dem Viech schadt’s scho. Dem schadt’s sogar ganz gewaltig.'],
-    ['Aber es schmeckt halt so guat!', 'Dann kost amoi unsere Erdäpfelpuffer. Danach red ma weiter!'],
-    ['Na geh, a Viech is a Viech.', 'A Viech hat Angst und Schmerz wia du und i. Des is ka Sach, Bua!']
+    ['Des hamma immer scho so g’macht.', 'Früher hamma a mit Kohle g’heizt und Bleifarben g’strichen. Ma derf a gscheiter werden, gö!']
   ];
-  const CONVINCED = ['Na guat ... dann probier i halt was Deftiges von euch.', 'Hm. So hab i des no nie g’sehn. I probier’s.', 'Du bist streng, oba recht hast. Gib ma a Gemüse!', 'Na servas. Überredet. Aber nur heut! ... Vielleicht.'];
-  const LEO_END = ['Na schau, geht eh! Und wennst as ned magst, kriagst as Geld z’ruck. Is eh gratis!', 'Brav! Und ab morgen bringst dei Nachbarin a mit, gö!', 'Siagst. Mit Herz und Hirn geht ois.'];
+  const CONVINCED = ['Na guat ... dann probier i halt was Deftiges von euch.', 'Hm. So hab i des no nie g’sehn. I probier’s.', 'Du bist streng, oba recht hast. Gib ma a Gemüse!', 'Guat, guat, i probier’s, bevor i selber im Eintopf land!', 'Na servas. Überredet. Aber nur heut! ... Vielleicht.'];
+  const LEO_END = ['Siagst, Hirn einschalten tut ned weh. Meistens.', 'Brav! Und wer morgen wieder Fleisch bestellt, kommt selber in Eintopf. Schmäh! ... Großteils.', 'Na schau, geht eh! Und wennst as ned magst, kriagst as Geld z’ruck. Is eh gratis!', 'Siagst. Mit Herz und Hirn geht ois.'];
   function shuffled(a) { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; }
   async function debate(n) {
     S.debating = true;
@@ -1212,6 +1217,61 @@
     S.leoBusy = false;
     S.debating = false;
     S.nextDebate = S.elapsed + 8;
+  }
+
+  // ---------------------------------------------------------------
+  // Überraschung: Leolittas veganer Festtruthahn
+  // ---------------------------------------------------------------
+  const FEAST_OPEN = {
+    reward: ['Und hiaz zeig i euch, wos a echter Festbraten is! Hundert Prozent ohne Viech!', 'Weil’s so brav zuag’hört habt’s: Festtag! Greifts zua!'],
+    rescue: ['Aus da Bahn, hier kommt da Retter in da Not! Ganz ohne Feder und ohne Leid!', 'Hiaz is gnua g’wartet! Leolitta bringt an Truthahn, der nie g’lebt hat!']
+  };
+  const FEAST_CHEER = ['Des is ja a Wahnsinn!', 'Und des is wirklich ohne Viech?', 'I werd vegan. Ab morgen. Fix!', 'So a Festessen hab i seit Weihnachten 1998 ned g’habt!', 'Leolitta, du bist a Heilige!', 'Oy, des schmeckt wie bei meiner Mamme. Nur besser!'];
+  async function feast(kind) {
+    if (S.leoBusy || S.phase !== 'play' || !S.queue.length) return;
+    S.leoBusy = true;
+    S.feasting = true;
+    const g = $('gerti');
+    $('turkey').setAttribute('opacity', '1');
+    Music.sfx('feast');
+    $('feastglow').classList.add('on');
+    toast(kind === 'rescue' ? 'Rettung in letzter Sekunde!' : 'Überraschung!', 'Leolitta kommt mit einem riesigen veganen Festtruthahn!');
+    g.classList.add('walking');
+    gertiAt(560 - 270);
+    await wait(2100);
+    g.classList.remove('walking');
+    say(560, 350, pick(FEAST_OPEN[kind]), 3600, 'Leolitta');
+    await wait(1600);
+    const list = S.queue.slice();
+    list.forEach((n, i) => { n.tx = 620 + (i % 6) * 38; n.feast = true; });
+    await wait(1900);
+    list.forEach((n) => { const b = n.el.querySelector('.bowl'); if (b) { b.querySelector('path').setAttribute('fill', '#B5651D'); b.setAttribute('opacity', '1'); } });
+    const cheer = shuffled(FEAST_CHEER);
+    bubbles.querySelectorAll('.bubble-say').forEach((bb) => { bb.classList.remove('show'); setTimeout(() => bb.remove(), 350); });
+    let prevB = null;
+    for (let i = 0; i < Math.min(3, list.length); i++) {
+      const n = list[i];
+      if (prevB && prevB.isConnected) { prevB.classList.remove('show'); const pb = prevB; setTimeout(() => pb.remove(), 350); }
+      if (n.el.isConnected) prevB = say(n.x, QY - 162, cheer[i], 3000, n.name);
+      await wait(1500);
+    }
+    const fed = list.filter((n) => S.queue.includes(n));
+    feedList(fed, 3, true);
+    addScore(fed.length * 30 + 100);
+    celebrate();
+    toast(`Festtag im Grätzl! ${fed.length} glückliche Nachbarn`, `+${fed.length * 30 + 100} Punkte. Und keinem einzigen Viech is was passiert.`);
+    S.feasts = (S.feasts || 0) + 1;
+    await wait(1800);
+    say(560, 350, pick(['So schaut’s aus, wenn ma Herz hat!', 'Und nächstes Mal bringt’s eure Schwiegermütter mit!', 'Pfiat eich, ihr Truthahn-Fans!']), 3000, 'Leolitta');
+    await wait(2400);
+    $('feastglow').classList.remove('on');
+    g.classList.add('walking');
+    gertiAt(-420);
+    await wait(2000);
+    g.classList.remove('walking');
+    $('turkey').setAttribute('opacity', '0');
+    S.feasting = false;
+    S.leoBusy = false;
   }
 
   async function masterCook() {
@@ -1709,6 +1769,13 @@
       });
     }
 
+    // Leolittas Festtruthahn: nach 3 überzeugten Fleischessern oder als Rettung in der Not
+    if (running && !S.leoBusy && !S.busy && !S.handing) {
+      if (S.converted - (S.feastMark || 0) >= 3) { S.feastMark = S.converted; feast('reward'); }
+      else if (!S.rescueTried && !S.rescueDone && S.queue.length >= QUEUE_MAX - 2) { S.rescueTried = true; if (Math.random() < 0.5) { S.rescueDone = true; feast('rescue'); } }
+    }
+    if (running && S.rescueTried && S.queue.length <= QUEUE_MAX - 5) S.rescueTried = false;
+
     // Leolitta geht zu Fleisch-Wünschen
     if (running && !S.leoBusy && !S.busy && S.elapsed > (S.nextDebate || 0)) {
       const meat = S.queue.find((n) => n.wish === 'fleisch' && Math.abs(n.tx - n.x) < 2 && n.waited > 3);
@@ -1860,7 +1927,7 @@
     celebrate();
     endScreen(record ? 'Neuer Rekord!' : 'Feierabend in der Radküche!',
       `${S.served} Nachbarinnen und Nachbarn versorgt.`,
-      [`Davon hast du ${S.wishHits} Wünsche genau erfüllt, ${S.converted ? `Leolitta hat ${S.converted} ${S.converted === 1 ? 'Fleischesser' : 'Fleischesser'} zum Probieren überredet, ` : ''}${S.dishes} ${S.dishes === 1 ? 'Gericht' : 'Gerichte'} gekocht und ${S.flowers} Blumen gepflanzt. ${S.bees.length} Hummeln summen jetzt durch die Straße.`,
+      [`Davon hast du ${S.wishHits} Wünsche genau erfüllt, ${S.converted ? `Leolitta hat ${S.converted} Fleischesser zum Probieren überredet, ` : ''}${S.feasts ? `es gab ${S.feasts === 1 ? 'einen Festtruthahn' : S.feasts + ' Festtruthähne'}, ` : ''}${S.dishes} ${S.dishes === 1 ? 'Gericht' : 'Gerichte'} gekocht und ${S.flowers} Blumen gepflanzt. ${S.bees.length} Hummeln summen jetzt durch die Straße.`,
        `Dein Rekord: ${bestServed} Versorgte in 5 Minuten. Punkte: ${S.score}.`,
        record ? 'Des is ka Rekord, des is a Liebeserklärung ans Grätzl!' : 'Schaffst du nächstes Mal mehr? Tipp: Schau, was die meisten wollen, und koch genau das.',
        'Und das Schönste: Das geht auch in echt. Komm in die Crew!'], true);
@@ -1921,6 +1988,8 @@
     const nb = $('nifbike'); nb.style.transition = 'none'; nb.style.transform = 'translate(1450px, 414px)';
     $('nif-rider').setAttribute('opacity', '1');
     $('queue').classList.remove('calm'); $('leaves').setAttribute('opacity', '0');
+    $('turkey').setAttribute('opacity', '0');
+    $('feastglow').classList.remove('on');
     const ge = $('gerti'); ge.style.transition = 'none'; ge.style.transform = 'translateX(-420px)'; void ge.getBBox(); ge.style.transition = '';
     $('talklog').innerHTML = '<li class="empty">Noch ist es ruhig auf der Straße.</li>';
   }
@@ -2032,5 +2101,5 @@
   requestAnimationFrame(frame);
 
   // Für Tests
-  window.__radkueche = { judge, newCrate, state: () => S, setCrate: (c) => { S.crate = c; renderCrate(); } };
+  window.__radkueche = { judge, newCrate, feast: (k) => feast(k || 'reward'), state: () => S, setCrate: (c) => { S.crate = c; renderCrate(); } };
 })();
