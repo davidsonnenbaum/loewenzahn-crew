@@ -408,3 +408,19 @@ body.game-on .deck-btns > *{flex:0 0 auto}
 .feastglow.on{opacity:1;animation:feastpulse 1.6s ease-in-out infinite alternate}
 @keyframes feastpulse{from{filter:brightness(1)}to{filter:brightness(1.25)}}
 #turkey{transition:opacity .4s ease}
+
+/* Kompakte Knopfleiste mit Symbolen */
+.icon-btn{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:2px solid #2F5233;border-radius:50%;background:#FFFFFF;color:#2F5233;cursor:pointer;padding:0}
+.icon-btn:hover:not(:disabled){background:#EAF1E0}
+.call-label{font-weight:800;font-size:14px;color:#6B5A4A}
+.avatar-btn{position:relative;width:52px;height:52px;padding:0;border:3px solid #F2B530;border-radius:50%;background:#FFFFFF;cursor:pointer;box-shadow:0 3px 0 #C98F12;transition:transform .12s ease}
+.avatar-btn svg{width:100%;height:100%;display:block;border-radius:50%}
+.avatar-btn:hover:not(:disabled){transform:translateY(-2px)}
+.avatar-btn:disabled{filter:grayscale(.85);opacity:.55;box-shadow:none}
+.avatar-btn .badge{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:#2F5233;color:#FFFFFF;font:800 12px/20px 'Nunito',sans-serif;text-align:center}
+.avatar-btn .badge.timer:empty{display:none}
+.avatar-btn .badge.timer{background:#E8792F}
+.deck-btns .spacer.small{flex:0 0 6px}
+body.game-on .deck-btns .icon-btn{width:40px;height:40px;min-height:0}
+@media (max-height:520px){body.game-on .avatar-btn{width:40px;height:40px}body.game-on .icon-btn{width:34px !important;height:34px !important}}
+@media (max-width:640px){.avatar-btn{width:44px;height:44px}.call-label{display:none}}

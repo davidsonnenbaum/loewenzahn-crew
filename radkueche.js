@@ -815,9 +815,11 @@
     $('pause').disabled = S.phase !== 'play';
     $('call-leolita').disabled = !playing || S.jk.leolita <= 0;
     $('call-nif').disabled = S.phase !== 'play' || S.paused || S.jk.nif <= 0 || S.nifBusy || S.calmUntil > S.elapsed;
-    $('jk-leolita').textContent = '(' + S.jk.leolita + ')';
-    $('jk-nif').textContent = '(' + S.jk.nif + ')';
-    $('pause').textContent = S.paused ? 'Weiter' : 'Pause';
+    $('jk-leolita').textContent = S.jk.leolita;
+    $('jk-nif').textContent = S.jk.nif;
+    $('pause').innerHTML = S.paused ? '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M8 5 L19 12 L8 19 Z" fill="currentColor"></path></svg>' : '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.2" fill="currentColor"></rect><rect x="14" y="5" width="4" height="14" rx="1.2" fill="currentColor"></rect></svg>';
+    $('pause').setAttribute('aria-label', S.paused ? 'Weiterspielen' : 'Pause');
+    $('pause').title = S.paused ? 'Weiter' : 'Pause';
   }
   function addToPot(id, fromEl) {
     if (S.phase !== 'play' || S.busy || S.pot.length >= 12) return;
@@ -857,7 +859,7 @@
     if (S.refilling > 0 || S.phase !== 'play') return;
     S.refilling = 9;
     S.jakob = 'leaving';
-    $('refill-note').textContent = 'Jakob radelt los ...';
+    $('refill-note').textContent = '…';
     say(220, 420, pick(JAKOB_GO), 3200, 'Jakob');
     Music.sfx('bike');
     $('jakob').classList.add('rolling');
@@ -867,7 +869,7 @@
   }
   function jakobTick() {
     if (S.refilling <= 0) return;
-    $('refill-note').textContent = 'Jakob ist auf Rettungstour ... noch ' + Math.ceil(Math.max(0, S.refilling)) + ' s';
+    $('refill-note').textContent = Math.ceil(Math.max(0, S.refilling)) + 's';
     if (S.jakob === 'leaving' && S.refilling < 6.5) { S.jakob = 'shopping'; $('jakob-load').setAttribute('opacity', '1'); }
     if (S.jakob === 'shopping' && S.refilling < 3) { S.jakob = 'returning'; jakobAt(170); }
     if (S.refilling <= 0.05) {
@@ -2068,7 +2070,7 @@
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDrawers(); });
   function syncSound() {
     const b = $('sound');
-    b.textContent = Music.isOn() ? 'Musik: an' : 'Musik: aus';
+    b.innerHTML = Music.isOn() ? '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 9 H8 L13 5 V19 L8 15 H4 Z" fill="currentColor"></path><path d="M16 9 Q18 12 16 15 M18.5 6.5 Q22.5 12 18.5 17.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>' : '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 9 H8 L13 5 V19 L8 15 H4 Z" fill="currentColor"></path><path d="M16.5 9.5 L21.5 14.5 M21.5 9.5 L16.5 14.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path></svg>';
     b.setAttribute('aria-pressed', Music.isOn() ? 'true' : 'false');
   }
   $('sound').addEventListener('click', () => { Music.toggle(S.phase === 'play' && !S.paused); syncSound(); });
