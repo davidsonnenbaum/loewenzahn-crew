@@ -368,7 +368,7 @@
     return {
       phase: 'ready', served: 0, seeds: 0, score: 0, flowers: 0, roofs: [0, 0, 0, 0], green: [false, false, false, false],
       crate: newCrate(), pot: [], queue: [], leaving: [], bees: [], targets: [], spawnIn: 1.5, elapsed: 0, busy: false,
-      refilling: 0, paused: false, dishes: 0, nextId: 1, warm: 0
+      refilling: 0, paused: false, dishes: 0, nextId: 1, warm: 0, banterIn: 10, jakob: 'home'
     };
   }
 
@@ -475,13 +475,13 @@
     return `<svg width="${size}" height="${size}" viewBox="0 0 48 48" aria-hidden="true">${inner}</svg>`;
   }
 
-  // ----- Rettungskiste, Basis, Gewürze als Bildkacheln -----
+  // ----- Zutaten in einer Reihe -----
   function tile(id, def, extra) {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'tile' + (extra || '');
     b.dataset.id = id;
-    b.innerHTML = iconSvg(id, 48);
+    b.innerHTML = iconSvg(id, 40);
     const name = document.createElement('span');
     name.className = 'tile-name';
     name.textContent = def.name;
@@ -494,8 +494,8 @@
     box.innerHTML = '';
     const ids = Object.keys(S.crate);
     if (!ids.length) {
-      const p = document.createElement('p'); p.className = 'note'; p.style.margin = '0';
-      p.textContent = 'Die Kiste ist leer. Zeit für eine neue Rettungstour!';
+      const p = document.createElement('p'); p.className = 'crate-empty';
+      p.textContent = 'Kiste leer! Schick Jakob auf Rettungstour.';
       box.append(p);
     }
     ids.forEach((id) => {
@@ -516,19 +516,11 @@
     $('season').textContent = 'Heute, ' + si.day + '. ' + MONTHS[si.month] + ': ' + si.word + '!';
   }
   function renderPotList() {
-    const list = $('potlist');
-    list.innerHTML = '';
-    if (!S.pot.length) {
-      const li = document.createElement('li'); li.className = 'empty'; li.textContent = 'Noch leer. Womit fängst du an?'; list.append(li);
-    } else {
-      S.pot.forEach((id, i) => { const li = document.createElement('li'); li.textContent = (i + 1) + '. ' + NAME(id); list.append(li); });
-    }
-    const qb = $('qb-list');
-    if (qb) qb.textContent = S.pot.length ? S.pot.map(NAME).join(' → ') : 'noch leer';
+    $('potline').textContent = S.pot.length ? S.pot.map((id, i) => (i + 1) + '. ' + NAME(id)).join('  ·  ') : 'noch leer. Womit fängst du an?';
     syncButtons();
   }
 
-  // ----- Was im Topf zu sehen ist -----
+  // ----- Was im Topf der Radküche zu sehen ist -----
   function colorOf(id) { return (ING[id] || BASE[id] || SPICE[id]).color; }
   function mix(colors) {
     if (!colors.length) return '#C9A26B';
@@ -550,67 +542,40 @@
   }
   function seeded(i) { const x = Math.sin(i * 9301 + 49297) * 233280; return x - Math.floor(x); }
   function renderPotVisual() {
-    const pieces = $('ui-pieces');
-    pieces.innerHTML = '';
     const pot = S.pot;
-    const liquid = $('ui-liquid');
-    const hasWater = pot.includes('wasser');
-    liquid.setAttribute('fill', hasWater ? soupColor(pot) : '#5A4030');
-    liquid.setAttribute('opacity', pot.length ? (hasWater ? '1' : '.55') : '0');
-    $('ui-shine').setAttribute('opacity', pot.includes('oel') ? '.7' : '0');
+    const liquid = $('scene-liquid');
+    liquid.setAttribute('fill', pot.includes('wasser') ? soupColor(pot) : '#5A4030');
+    liquid.setAttribute('opacity', pot.length ? '1' : '0');
     let html = '';
     pot.forEach((id, i) => {
       if (id === 'wasser' || id === 'oel') return;
-      const isSpice = !!SPICE[id] && !['kraeuter', 'zitrone'].includes(id);
-      const count = isSpice ? 7 : ING[id] ? 4 : 3;
+      const small = !!SPICE[id];
+      const count = small ? 3 : 2;
       for (let k = 0; k < count; k++) {
-        const s1 = seeded(i * 13 + k), s2 = seeded(i * 29 + k * 7 + 3), s3 = seeded(i * 7 + k * 31 + 11);
-        const x = 82 + s1 * 156;
-        const y = 112 + s2 * 22;
-        const delay = (-s3 * 3).toFixed(2);
-        if (isSpice) html += `<circle class="float" style="animation-delay:${delay}s" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="1.8" fill="${colorOf(id)}" opacity=".9"></circle>`;
-        else if (id === 'kraeuter') html += `<ellipse class="float" style="animation-delay:${delay}s" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="4" ry="2" fill="#4E9A45"></ellipse>`;
-        else if (id === 'zitrone') html += `<circle class="float" style="animation-delay:${delay}s" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="#F7E04B"></circle>`;
-        else {
-          const r = ING[id] ? 5 + s3 * 4 : 3.5;
-          html += `<rect class="float" style="animation-delay:${delay}s" x="${(x - r).toFixed(1)}" y="${(y - r * 0.6).toFixed(1)}" width="${(r * 2).toFixed(1)}" height="${(r * 1.2).toFixed(1)}" rx="${(r * 0.5).toFixed(1)}" fill="${colorOf(id)}" stroke="rgba(0,0,0,.18)" stroke-width="1"></rect>`;
-        }
+        const x = 192 + seeded(i * 13 + k) * 34;
+        const y = 335.5 + seeded(i * 29 + k * 7 + 3) * 3;
+        html += `<circle class="float" style="animation-delay:${(-seeded(i * 7 + k) * 3).toFixed(2)}s" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${small ? 0.9 : 2.2}" fill="${colorOf(id)}"></circle>`;
       }
     });
-    pieces.innerHTML = html;
+    $('scene-pieces').innerHTML = html;
   }
   function splash(id) {
-    const g = $('ui-splash');
-    const col = colorOf(id);
+    const g = $('scene-splash');
     let html = '';
-    for (let k = 0; k < 7; k++) {
-      const ang = -Math.PI * (0.15 + 0.7 * (k / 6));
-      const dx = Math.cos(ang) * rand(30, 60), dy = Math.sin(ang) * rand(25, 50);
-      html += `<circle class="drop" cx="160" cy="118" r="${rand(2.5, 5).toFixed(1)}" fill="${id === 'wasser' ? '#9CC7DF' : col}" style="--dx:${dx.toFixed(0)}px;--dy:${dy.toFixed(0)}px"></circle>`;
+    for (let k = 0; k < 6; k++) {
+      const ang = -Math.PI * (0.15 + 0.7 * (k / 5));
+      const dx = Math.cos(ang) * rand(10, 22), dy = Math.sin(ang) * rand(10, 20);
+      html += `<circle class="drop" cx="209" cy="334" r="${rand(1.4, 2.6).toFixed(1)}" fill="${id === 'wasser' ? '#9CC7DF' : colorOf(id)}" style="--dx:${dx.toFixed(0)}px;--dy:${dy.toFixed(0)}px"></circle>`;
     }
     g.innerHTML = html;
     setTimeout(() => { g.innerHTML = ''; }, 700);
   }
 
-  // ----- Zutat fliegt in den Topf -----
+  // ----- Flug in den Topf -----
   function potMouthScreen() {
-    const svgEl = $('potsvg');
-    const pt = svgEl.createSVGPoint(); pt.x = 160; pt.y = 118;
-    return pt.matrixTransform(svgEl.getScreenCTM());
-  }
-  function stickyBottom() {
-    const st = document.querySelector('.sticky-top');
-    if (!st || getComputedStyle(st).position !== 'sticky') return 0;
-    return st.getBoundingClientRect().bottom;
-  }
-  function bigPotVisible() {
-    const r = $('potsvg').getBoundingClientRect();
-    const cy = r.top + r.height * 0.4;
-    return cy > stickyBottom() && cy < window.innerHeight;
-  }
-  function scenePotScreen() {
-    const pt = svg.createSVGPoint(); pt.x = 249; pt.y = 334;
-    return pt.matrixTransform(svg.getScreenCTM());
+    const k = $('kitchen');
+    const pt = svg.createSVGPoint(); pt.x = 209; pt.y = 332;
+    return pt.matrixTransform(k.getScreenCTM());
   }
   function fly(fromEl, html, toX, toY, size, done, opts) {
     if (reduceMotion || !fromEl) { done(); return; }
@@ -623,12 +588,12 @@
     el.innerHTML = html;
     $('flyer').appendChild(el);
     const dx = toX - (r.left + r.width / 2), dy = toY - (r.top + r.height / 2);
-    const lift = (opts && opts.lift) || Math.min(90, 30 + Math.abs(dx) * 0.1);
+    const lift = (opts && opts.lift) || Math.min(140, 60 + Math.abs(dx) * 0.12);
     const anim = el.animate([
       { transform: 'translate(0,0) scale(1) rotate(0deg)' },
-      { transform: `translate(${dx * 0.5}px, ${dy * 0.5 - lift}px) scale(${(opts && opts.midScale) || 1.1}) rotate(${(opts && opts.spin) || 200}deg)`, offset: 0.5 },
-      { transform: `translate(${dx}px, ${dy}px) scale(${(opts && opts.endScale) || 0.45}) rotate(${((opts && opts.spin) || 200) * 2}deg)` }
-    ], { duration: (opts && opts.ms) || 620, easing: 'cubic-bezier(.45,.05,.55,.95)' });
+      { transform: `translate(${dx * 0.5}px, ${dy * 0.5 - lift}px) scale(1.15) rotate(200deg)`, offset: 0.5 },
+      { transform: `translate(${dx}px, ${dy}px) scale(.35) rotate(400deg)` }
+    ], { duration: (opts && opts.ms) || 720, easing: 'cubic-bezier(.45,.05,.55,.95)' });
     anim.onfinish = () => { el.remove(); done(); };
   }
 
@@ -638,9 +603,7 @@
     $('cook').disabled = !playing || !S.pot.length;
     $('undo').disabled = !playing || !S.pot.length;
     $('clear').disabled = !playing || !S.pot.length;
-    $('qb-cook').disabled = !playing || !S.pot.length;
-    $('qb-undo').disabled = !playing || !S.pot.length;
-    $('refill').disabled = !(S.phase === 'play') || S.refilling > 0 || S.paused;
+    $('refill').disabled = S.phase !== 'play' || S.refilling > 0 || S.paused;
     $('pause').disabled = S.phase !== 'play';
     $('pause').textContent = S.paused ? 'Weiter' : 'Pause';
   }
@@ -652,14 +615,14 @@
       if (S.crate[id] <= 0) delete S.crate[id];
     }
     S.pot.push(id);
-    const target = bigPotVisible() ? potMouthScreen() : scenePotScreen();
+    const target = potMouthScreen();
     const icon = fromEl ? fromEl.querySelector('svg') : null;
     if (ING[id]) renderCrate();
     renderPotList();
-    fly(icon || fromEl, iconSvg(id, 48), target.x, target.y, 48, () => {
+    fly(icon || fromEl, iconSvg(id, 40), target.x, target.y, 40, () => {
       splash(id);
       renderPotVisual();
-      $('potsvg').classList.remove('plop'); void $('potsvg').getBBox(); $('potsvg').classList.add('plop');
+      const p = $('pot'); p.classList.remove('plop'); void p.getBBox(); p.classList.add('plop');
     });
   }
   function undo() {
@@ -672,19 +635,86 @@
     S.pot = [];
     renderCrate(); renderPotList(); renderPotVisual();
   }
+
+  // ----- Jakob fährt auf Rettungstour -----
+  const JAKOB_GO = ['Bin glei zruck! Wenn ned, hat mi a Kürbis überrollt.', 'Auf zur Rettung! Kein Erdapfel bleibt zurück!', 'I fahr zum Markt. Wer was will, ruft laut!'];
+  const JAKOB_BACK = ['Ahoi! Der Supermarkt hätt des alles weggschmissen. Jetzt is’ unser Schatz!', 'Nachschub! Und a Paradeiser is dabei, der singt Opern.', 'Voll beladen! Des Rad hat mehr Muskeln als i.'];
+  function jakobAt(x) { $('jakob').style.transform = `translate(${x}px, 552px)`; }
   function refill() {
-    if (S.refilling > 0) return;
-    S.refilling = 6;
-    $('refill-note').textContent = 'Die Crew radelt los ...';
+    if (S.refilling > 0 || S.phase !== 'play') return;
+    S.refilling = 9;
+    S.jakob = 'leaving';
+    $('refill-note').textContent = 'Jakob radelt los ...';
+    say(220, 420, pick(JAKOB_GO), 3200, 'Jakob');
+    $('jakob').classList.add('rolling');
+    $('jakob-load').setAttribute('opacity', '0');
+    jakobAt(-360);
     syncButtons();
   }
+  function jakobTick() {
+    if (S.refilling <= 0) return;
+    $('refill-note').textContent = 'Jakob ist auf Rettungstour ... noch ' + Math.ceil(Math.max(0, S.refilling)) + ' s';
+    if (S.jakob === 'leaving' && S.refilling < 6.5) { S.jakob = 'shopping'; $('jakob-load').setAttribute('opacity', '1'); }
+    if (S.jakob === 'shopping' && S.refilling < 3) { S.jakob = 'returning'; jakobAt(170); }
+    if (S.refilling <= 0.05) {
+      S.refilling = 0;
+      S.jakob = 'home';
+      $('jakob').classList.remove('rolling');
+      const fresh = newCrate();
+      for (const id in fresh) S.crate[id] = (S.crate[id] || 0) + fresh[id];
+      $('refill-note').textContent = '';
+      renderCrate();
+      say(220, 420, pick(JAKOB_BACK), 3800, 'Jakob');
+      setTimeout(() => $('jakob-load').setAttribute('opacity', '0'), 1600);
+      syncButtons();
+    }
+  }
 
-  // ----- Kochen, anrichten, übergeben -----
+  // ----- Mira unterhält die Schlange -----
+  const MIRA_SOLO = [
+    'Wer errät, wie viele Erdäpfel i jonglier, kriegt an Nachschlag! Tipp: Es san drei.',
+    'Warten is wie Kochen: Je länger, desto besser. Meistens.',
+    'Liebe Nachbarschaft, bitte ned drängeln, der Kürbis is scho nervös genug.',
+    'I hab heut scho drei Zwiebeln g’schnitten. I wein ned, i bin nur gerührt.',
+    'Wer am lautesten lacht, kriegt die größte Portion. Probiert’s aus!'
+  ];
+  const DUETS = [
+    ['Captain, a Kunde fragt, ob des Essen bio is.', 'Bio-grafisch! Jedes Gemüse hat a Geschichte.'],
+    ['Captain, wie viel Salz?', 'A Prise. A Weaner Prise. Also a Handvoll.'],
+    ['Captain, wieso trägst du eigentlich a Kapitänsmütze?', 'Damit mi die Zwiebeln ernst nehmen.'],
+    ['I hab die Zwiebel g’schnitten und jetzt wein i.', 'Des is Teambuilding, Mira.'],
+    ['Captain, die Schlange wird länger!', 'Dann kochen ma schneller. Und reden langsamer.'],
+    ['Captain, is des Schiff eigentlich seetauglich?', 'Na. Aber grätzltauglich, und des is wichtiger.']
+  ];
+  function banter() {
+    if (bubbles.children.length >= 2) return;
+    const r = Math.random();
+    if (r < 0.35) {
+      $('juggle').setAttribute('opacity', '1');
+      $('mira').classList.add('juggling');
+      say(60, 340, pick(MIRA_SOLO), 4200, 'Mira');
+      setTimeout(() => { $('juggle').setAttribute('opacity', '0'); $('mira').classList.remove('juggling'); }, 4200);
+    } else if (r < 0.8) {
+      const d = pick(DUETS);
+      say(60, 340, d[0], 3400, 'Mira');
+      setTimeout(() => { if (S.phase === 'play') say(342, 330, d[1], 3800, 'Captain Dave'); }, 2300);
+    } else {
+      say(60, 340, pick(MIRA_SOLO), 4200, 'Mira');
+    }
+  }
+
+  // ----- Kochen und übergeben -----
   const CAPTAIN_JOKES = [
     ['Ups. Des war a Probelauf. Ehrlich.', 'I hab des nur kocht, damit ihr seht, wie’s ned geht.', 'Des kriegt der Kompost. Der freut si wenigstens.'],
     ['Na ja, des is ... experimentell.', 'Probier’s, is gesund. Glaub i.', 'Kunst kommt von Können. Des kommt vom Kochen.'],
     ['Passt scho! Nächstes Mal mit no mehr Gefühl.', 'Ned perfekt, aber mit Herz gekocht.', 'A guade Hausmannskost, ganz ohne Haus.'],
     ['Des is ka Essen, des is a Liebeserklärung!', 'Gerettet und veredelt. So schaut’s aus!', 'Wenn des ned schmeckt, ess i mei Kapitänsmütze.']
+  ];
+  const MIRA_REACT = [
+    'Captain, i hol schnell den Kompostkübel ...',
+    'Mutig gekocht, Captain. Sehr mutig.',
+    'Riecht guat! Also eh guat.',
+    'Applaus für den Captain! Und für die Erdäpfel!'
   ];
   const wait = (ms) => new Promise((res) => setTimeout(res, reduceMotion ? Math.min(ms, 120) : ms));
 
@@ -696,57 +726,24 @@
     const result = judge(potCopy);
     const color = potCopy.includes('wasser') ? soupColor(potCopy) : mix(potCopy.filter((id) => ING[id]).map((id) => ING[id].color).concat(['#C9A26B']));
 
-    // 1. Es brodelt
-    const potsvg = $('potsvg');
-    potsvg.classList.add('cooking');
-    let bub = '';
-    for (let k = 0; k < 10; k++) bub += `<circle class="bub" style="animation-delay:${(k * 0.17).toFixed(2)}s" cx="${(90 + seeded(k + 5) * 140).toFixed(0)}" cy="${(116 + seeded(k + 9) * 16).toFixed(0)}" r="${(3 + seeded(k + 2) * 4).toFixed(1)}" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="1.5"></circle>`;
-    $('ui-bubbles').innerHTML = bub;
+    // Es brodelt, der Captain rührt
+    const sPot = $('pot');
+    $('kitchen').classList.add('cooking');
     $('captain').classList.remove('stir'); void $('captain').getBBox(); $('captain').classList.add('stir');
-    const sPot = $('pot'); sPot.classList.remove('bubble'); void sPot.getBBox(); sPot.classList.add('bubble');
-    await wait(1700);
-
-    // 2. Mit dem Schöpfer auf den Teller
-    potsvg.classList.remove('cooking');
-    $('ui-bubbles').innerHTML = '';
-    const ladle = $('ui-ladle');
-    $('ui-ladlefood').setAttribute('fill', color);
-    ladle.style.transition = 'none';
-    ladle.style.transform = 'translate(160px, 128px)';
-    ladle.setAttribute('opacity', '1');
-    await wait(260);
-    ladle.style.transition = 'transform .7s cubic-bezier(.45,.05,.55,.95)';
-    ladle.style.transform = 'translate(335px, 224px)';
-    await wait(750);
-    $('ui-food').querySelector('ellipse').setAttribute('fill', color);
-    $('ui-food').setAttribute('opacity', '1');
-    ladle.setAttribute('opacity', '0');
-    ladle.style.transform = '';
+    sPot.classList.remove('bubble'); void sPot.getBBox(); sPot.classList.add('bubble');
+    await wait(2000);
+    $('kitchen').classList.remove('cooking');
     S.pot = [];
     renderPotList();
     renderPotVisual();
-    await wait(350);
-
-    // 3. Der Teller fliegt hinauf zur Radküche
-    const plateEl = $('ui-plate');
-    const sceneSvg = $('scene');
-    const pt = sceneSvg.createSVGPoint(); pt.x = 360; pt.y = 398;
-    const target = pt.matrixTransform(sceneSvg.getScreenCTM());
-    const plateHtml = `<svg width="90" height="40" viewBox="0 0 90 40"><ellipse cx="45" cy="24" rx="42" ry="11" fill="#FFFFFF" stroke="#D8CDB8" stroke-width="2"></ellipse><ellipse cx="45" cy="20" rx="24" ry="7" fill="${color}"></ellipse></svg>`;
-    $('ui-food').setAttribute('opacity', '0');
-    const stageVisible = (() => { const r = sceneSvg.getBoundingClientRect(); return r.bottom > 0 && r.top < window.innerHeight; })();
-    await new Promise((res) => {
-      if (!stageVisible || !bigPotVisible() || result.spoons === 0) { res(); return; }
-      fly(plateEl, plateHtml, target.x, target.y, 90, res, { ms: 800, spin: 0, midScale: 1.15, endScale: 0.5, lift: 120 });
-    });
     serve(result, color);
   }
 
-  function spoonsSvg(n) {
+  function spoonsSvg(n, size) {
     let s = '';
     for (let i = 0; i < 3; i++) {
       const on = i < n;
-      s += `<svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><ellipse cx="12" cy="11" rx="7" ry="9" fill="${on ? '#C97B3D' : '#E9DCC4'}" transform="rotate(-35 12 11)"></ellipse><line x1="16" y1="16" x2="29" y2="30" stroke="${on ? '#6B4A32' : '#E9DCC4'}" stroke-width="4" stroke-linecap="round"></line></svg>`;
+      s += `<svg width="${size || 34}" height="${size || 34}" viewBox="0 0 34 34" aria-hidden="true"><ellipse cx="12" cy="11" rx="7" ry="9" fill="${on ? '#C97B3D' : '#E9DCC4'}" transform="rotate(-35 12 11)"></ellipse><line x1="16" y1="16" x2="29" y2="30" stroke="${on ? '#6B4A32' : '#E9DCC4'}" stroke-width="4" stroke-linecap="round"></line></svg>`;
     }
     return s;
   }
@@ -755,16 +752,31 @@
     const hp = $('handplate');
     $('handfood').setAttribute('fill', color);
     hp.style.transition = 'none';
-    hp.style.transform = 'translate(362px, 398px)';
+    hp.style.transform = 'translate(249px, 334px)';
     hp.setAttribute('opacity', '1');
-    await wait(80);
-    hp.style.transition = 'transform .6s ease-in-out';
+    await wait(60);
+    hp.style.transition = 'transform .45s ease-out';
+    hp.style.transform = 'translate(362px, 398px)';
+    await wait(480);
+    hp.style.transition = 'transform .55s ease-in-out';
     hp.style.transform = `translate(${(n.x - 22).toFixed(0)}px, ${QY - 44}px)`;
-    await wait(620);
+    await wait(580);
     hp.setAttribute('opacity', '0');
     const bowl = n.el.querySelector('.bowl');
     bowl.querySelector('path').setAttribute('fill', color);
     bowl.setAttribute('opacity', '1');
+  }
+
+  function showJuryPop(r) {
+    const pop = $('jurypop');
+    pop.innerHTML = '';
+    const sp = document.createElement('div'); sp.className = 'jp-spoons'; sp.innerHTML = spoonsSvg(r.spoons, 24); pop.append(sp);
+    const h = document.createElement('p'); h.className = 'jp-head'; h.textContent = r.head + (r.dish ? ' ' + r.dish + '!' : ''); pop.append(h);
+    if (r.notes[0]) { const t = document.createElement('p'); t.className = 'jp-note'; t.textContent = r.notes[0][1]; pop.append(t); }
+    pop.hidden = false;
+    pop.classList.remove('show'); void pop.offsetWidth; pop.classList.add('show');
+    clearTimeout(showJuryPop.t);
+    showJuryPop.t = setTimeout(() => pop.classList.remove('show'), 7000);
   }
 
   async function serve(r, color) {
@@ -777,7 +789,7 @@
     S.seeds += seeds;
     addScore(points);
 
-    // Jury-Panel
+    // Jury ausführlich unten, kurz in der Szene
     const v = $('verdict');
     v.innerHTML = '';
     const sp = document.createElement('div'); sp.className = 'spoons'; sp.setAttribute('aria-label', r.spoons + ' von 3 Kochlöffeln'); sp.innerHTML = spoonsSvg(r.spoons); v.append(sp);
@@ -791,26 +803,27 @@
       ? `${portions} ${portions === 1 ? 'Portion' : 'Portionen'}` + (feeds ? `, ${feeds} gleich ausgegeben` : '') + (kept > 0 ? `, ${kept} bleiben warm` : '') + ` · +${seeds} Samen · +${points} Punkte`
       : 'Keine Samen diesmal. Probier eine andere Reihenfolge!';
     v.append(rw);
+    showJuryPop(r);
 
-    // Der Captain macht einen Witz
     say(342, 330, pick(CAPTAIN_JOKES[r.spoons]), 3800, 'Captain Dave');
+    if (Math.random() < 0.5) setTimeout(() => say(60, 340, MIRA_REACT[r.spoons], 3200, 'Mira'), 1600);
 
     if (feeds) {
       const front = S.queue.slice(0, feeds);
       for (let i = 0; i < front.length; i++) {
         await handOver(front[i], color);
-        if (i === 0) setTimeout(() => { if (front[0].el.isConnected) say(front[0].x, QY - 108, pick(LINES[front[0].humor]['r' + r.spoons]), 4000, front[0].name); }, 900);
+        if (i === 0) setTimeout(() => { if (front[0].el.isConnected) say(front[0].x, QY - 108, pick(LINES[front[0].humor]['r' + r.spoons]), 4000, front[0].name); }, 700);
       }
       feedFront(feeds, r.spoons, true);
     } else if (S.queue.length && r.spoons === 0) {
       setTimeout(() => maybeSay(S.queue[0], 'r0', true), 1200);
     }
     S.warm += kept;
-    toast(r.head + (r.dish ? ' ' + r.dish + '!' : ''), seeds ? `+${seeds} Samen. Klick auf die Wiese oder ein Haus, um zu pflanzen.` : 'Lies den Tipp der Jury und versuch es nochmal.');
+    if (seeds) setTimeout(() => toast(`+${seeds} Samen!`, 'Klick auf die Wiese vorne oder auf ein Haus, um zu pflanzen.'), 600);
     S.busy = false;
     syncButtons();
     updateHud();
-    if (!Object.keys(S.crate).length && S.refilling <= 0) setTimeout(() => toast('Die Rettungskiste ist leer.', 'Drück auf „Neue Rettungstour“, um Nachschub zu holen.'), 2600);
+    if (!Object.keys(S.crate).length && S.refilling <= 0) setTimeout(() => toast('Die Rettungskiste ist leer.', 'Schick Jakob auf Rettungstour!'), 2600);
   }
 
   function feedFront(count, spoons, handed) {
@@ -966,19 +979,11 @@
         const base = Math.max(4.2, 8.5 - S.elapsed * 0.035);
         S.spawnIn = base + Math.min(2.5, S.flowers * 0.09) + rand(-0.8, 0.8);
       }
-      // Rettungstour
-      if (S.refilling > 0) {
-        S.refilling -= dt;
-        $('refill-note').textContent = 'Die Crew radelt los ... noch ' + Math.ceil(Math.max(0, S.refilling)) + ' Sekunden';
-        if (S.refilling <= 0) {
-          S.refilling = 0;
-          const fresh = newCrate();
-          for (const id in fresh) S.crate[id] = (S.crate[id] || 0) + fresh[id];
-          $('refill-note').textContent = '';
-          renderCrate();
-          toast('Nachschub ist da!', 'Neue gerettete Zutaten liegen in der Kiste.');
-        }
-      }
+      // Rettungstour mit Jakob
+      if (S.refilling > 0) { S.refilling -= dt; jakobTick(); }
+      // Mira unterhält die Leute
+      S.banterIn -= dt;
+      if (S.banterIn <= 0) { banter(); S.banterIn = rand(13, 21); }
       // Ungeduld
       S.queue.forEach((n, i) => {
         n.waited += dt;
@@ -1041,21 +1046,17 @@
   function updateQueueBar() {
     const q = S.queue.length;
     const pct = Math.min(100, q / QUEUE_MAX * 100);
-    $('h-qfill').style.width = pct + '%';
-    $('h-qfill').style.background = pct >= 75 ? '#B8432F' : pct >= 50 ? '#C97B3D' : '#2F5233';
-    $('h-qbar').setAttribute('aria-valuenow', String(q));
+    $('m-qfill').style.width = pct + '%';
+    $('m-qfill').style.background = pct >= 75 ? '#B8432F' : pct >= 50 ? '#C97B3D' : '#2F5233';
+    $('m-qbar').setAttribute('aria-valuenow', String(q));
   }
   function updateHud() {
-    $('h-served').textContent = S.served;
-    $('h-goal').textContent = GOAL;
-    $('h-seeds').textContent = S.seeds;
-    $('h-flowers').textContent = S.flowers;
-    $('h-bees').textContent = S.bees.length;
-    $('h-score').textContent = S.score;
-    $('h-warm').textContent = S.warm;
     $('m-served').textContent = S.served;
     $('m-seeds').textContent = S.seeds;
     $('m-warm').textContent = S.warm;
+    $('m-flowers').textContent = S.flowers;
+    $('m-bees').textContent = S.bees.length;
+    $('m-score').textContent = S.score;
     $('best').textContent = best;
     svg.classList.toggle('planting', S.seeds > 0 && S.phase === 'play');
     updateQueueBar();
@@ -1078,13 +1079,20 @@
       cap.classList.add('hop');
     }, 2700 * T);
     setTimeout(() => { aw.classList.add('open'); }, 3500 * T);
+    setTimeout(() => {
+      $('mira').style.transform = 'translateX(0px)';
+      $('jakob').classList.add('rolling');
+      jakobAt(170);
+    }, 1200 * T);
+    setTimeout(() => { $('jakob').classList.remove('rolling'); }, 3700 * T);
+    setTimeout(() => { say(60, 340, 'Servus! I bin die Mira und schnippel heut für euch.', 3200, 'Mira'); }, 6200 * T);
     setTimeout(() => { $('flame').setAttribute('opacity', '1'); }, 4400 * T);
     setTimeout(() => { $('steam').setAttribute('opacity', '1'); say(342, 330, pick(CAPTAIN_LINES), 3200, 'Captain Dave'); }, 5000 * T);
     setTimeout(() => {
       S.phase = 'play';
       S.spawnIn = 0.2;
       syncButtons();
-      toast('Die Radküche ist offen!', 'Leg Zutaten in den Topf und drück auf „Abschmecken und servieren“.');
+      toast('Die Radküche ist offen!', 'Tipp unten Zutaten an, sie fliegen direkt in den Topf. Dann „Abschmecken“.');
     }, 5600 * T);
   }
 
@@ -1155,8 +1163,12 @@
     $('steam').setAttribute('opacity', '0');
     $('verdict').innerHTML = '<p class="v-empty">Koch dein erstes Gericht, dann sag ich dir ehrlich, wie es geworden ist.</p>';
     $('refill-note').textContent = '';
-    $('ui-food').setAttribute('opacity', '0');
     $('handplate').setAttribute('opacity', '0');
+    $('jurypop').hidden = true;
+    const mira = $('mira'); mira.style.transition = 'none'; mira.style.transform = 'translateX(-260px)'; void mira.getBBox(); mira.style.transition = '';
+    const jk = $('jakob'); jk.style.transition = 'none'; jakobAt(-420); void jk.getBBox(); jk.style.transition = '';
+    $('jakob-load').setAttribute('opacity', '0');
+    $('talklog').innerHTML = '<li class="empty">Noch ist es ruhig auf der Straße.</li>';
   }
 
   function startGame() {
@@ -1170,11 +1182,19 @@
   }
 
   // ----- Knöpfe -----
-  $('ov-start').addEventListener('click', startGame);
+  $('ov-start').addEventListener('click', () => {
+    startGame();
+    const play = document.querySelector('.play');
+    if (play && play.getBoundingClientRect().top < 0 || (play && play.getBoundingClientRect().top > 120)) play.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+  });
+  const strip = $('strip');
+  $('strip-left').addEventListener('click', () => strip.scrollBy({ left: -strip.clientWidth * 0.7, behavior: 'smooth' }));
+  $('strip-right').addEventListener('click', () => strip.scrollBy({ left: strip.clientWidth * 0.7, behavior: 'smooth' }));
+  strip.addEventListener('wheel', (e) => {
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && strip.scrollWidth > strip.clientWidth) { strip.scrollLeft += e.deltaY; e.preventDefault(); }
+  }, { passive: false });
   $('cook').addEventListener('click', cook);
   $('undo').addEventListener('click', undo);
-  $('qb-cook').addEventListener('click', cook);
-  $('qb-undo').addEventListener('click', undo);
   $('clear').addEventListener('click', clearPot);
   $('refill').addEventListener('click', refill);
   $('pause').addEventListener('click', () => {
