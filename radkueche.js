@@ -2010,6 +2010,7 @@
 
   // ----- Knöpfe -----
   $('ov-start').addEventListener('click', () => {
+    $('overlay').hidden = true;
     enterGame();
     startGame();
     Music.start();
