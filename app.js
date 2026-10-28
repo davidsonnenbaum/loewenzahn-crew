@@ -208,7 +208,7 @@ const CONTACT_EMAIL = 'DEINE-EMAIL@beispiel.at';
     petals.className = 'petals';
     wrap.appendChild(petals);
 
-    const $ = (id) => document.getElementById(id);
+    const $ = (id) => document.getElementById(id) || document.createElement('span');
     let seed = 'mix';
     let mixIndex = 0;
     let state;
