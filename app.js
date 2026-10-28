@@ -1,4 +1,4 @@
-// Captain Dave & die Löwenzahn-Crew
+// Captn Dave & die Löwenzahn-Crew
 // Hier deine echte E-Mail-Adresse eintragen, an die Anheuer-Anfragen gehen sollen:
 const CONTACT_EMAIL = 'DEINE-EMAIL@beispiel.at';
 
@@ -48,7 +48,7 @@ const CONTACT_EMAIL = 'DEINE-EMAIL@beispiel.at';
     const clamp = (v) => Math.max(0, Math.min(1, v));
     const captions = [
       'Eine Straße wie viele: Autos, Lärm, und niemand bleibt stehen.',
-      'Da kommt die Kolonne: Captain Dave und die Löwenzahn-Crew rollen mit der Radküche herein.',
+      'Da kommt die Kolonne: Captn Dave und die Löwenzahn-Crew rollen mit der Radküche herein.',
       'Das Radschiff legt an. Die Autos fahren davon, der Topf dampft, es riecht nach Essen.',
       'Die Nachbarn kommen neugierig dazu. Aus Fremden wird eine Crew.',
       'Aus dem Asphalt wachsen Bäume, überall blühen Wiesen.',
@@ -507,7 +507,7 @@ const CONTACT_EMAIL = 'DEINE-EMAIL@beispiel.at';
       const text = `Ich habe mit der Löwenzahn-Crew ${state.score} Blühpunkte gesammelt und mein Grätzl zum Blühen gebracht. Probier's aus:`;
       const url = location.href.split('#')[0];
       try {
-        if (navigator.share) { await navigator.share({ title: 'Captain Dave & die Löwenzahn-Crew', text, url }); return; }
+        if (navigator.share) { await navigator.share({ title: 'Captn Dave & die Löwenzahn-Crew', text, url }); return; }
         await navigator.clipboard.writeText(text + ' ' + url);
         toast('Text kopiert!', 'Füg ihn ein, wo du magst, und lade Freunde ein.');
       } catch (e) {
@@ -549,7 +549,7 @@ const CONTACT_EMAIL = 'DEINE-EMAIL@beispiel.at';
     function send() {
       const offerText = select ? select.options[select.selectedIndex].text : offer;
       const lines = [
-        'Hallo Captain Dave,',
+        'Hallo Captn Dave,',
         '',
         'ich möchte euch anheuern für: ' + offerText,
         '',

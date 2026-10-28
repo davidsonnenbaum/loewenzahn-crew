@@ -1,6 +1,6 @@
-# Captain Dave & die Löwenzahn-Crew
+# Captn Dave & die Löwenzahn-Crew
 
-Wir bringen das Land in die Stadt.
+Wir werden zu Gestaltern unserer Welt.
 
 Die Website besteht aus reinem HTML, CSS und JavaScript, ohne Baukasten und ohne Build-Schritt. Sie läuft direkt auf GitHub Pages.
 

@@ -660,7 +660,7 @@
     const empty = list.querySelector('.empty');
     if (empty) empty.remove();
     const li = document.createElement('li');
-    li.className = who === 'Captain Dave' ? 'cap' : '';
+    li.className = who === 'Captn Dave' ? 'cap' : '';
     const s = document.createElement('strong'); s.textContent = who + ': ';
     li.append(s, document.createTextNode(text));
     list.prepend(li);
@@ -984,7 +984,7 @@
     } else if (r < 0.8) {
       const d = pick(DUETS);
       say(60, 340, d[0], 3400, 'Rolf');
-      say(342, 330, d[1], 3800, 'Captain Dave');
+      say(342, 330, d[1], 3800, 'Captn Dave');
     } else {
       say(60, 340, pick(MIRA_SOLO), 4200, 'Rolf');
     }
@@ -1105,7 +1105,7 @@
     if (master) { const g = document.createElement('p'); g.className = 'v-master'; g.textContent = 'Gekocht von Leolitta. Ihr Rezept mit allen Erklärungen steht unten im Rezeptbuch.'; v.prepend(g); }
     showJuryPop(r);
 
-    say(342, 330, master ? pick(['Danke, Leolitta! Des war a Lehrstunde.', 'Leolitta, du bist a Legende!', 'I glaub, i muss no viel lernen.']) : pick(CAPTAIN_JOKES[r.spoons]), 3800, 'Captain Dave');
+    say(342, 330, master ? pick(['Danke, Leolitta! Des war a Lehrstunde.', 'Leolitta, du bist a Legende!', 'I glaub, i muss no viel lernen.']) : pick(CAPTAIN_JOKES[r.spoons]), 3800, 'Captn Dave');
     if (Math.random() < 0.5) say(60, 340, MIRA_REACT[r.spoons], 3200, 'Rolf', { low: true });
 
     if (feeds) {
@@ -1863,7 +1863,7 @@
     if (running) {
       S.elapsed += dt;
       if (S.elapsed >= ROUND) { timeUp(); }
-      if (!S.warned && ROUND - S.elapsed < 30) { S.warned = true; toast('Noch 30 Sekunden!', 'Schnell, wer noch was will?'); say(342, 330, 'Endspurt, Crew!', 2600, 'Captain Dave'); }
+      if (!S.warned && ROUND - S.elapsed < 30) { S.warned = true; toast('Noch 30 Sekunden!', 'Schnell, wer noch was will?'); say(342, 330, 'Endspurt, Crew!', 2600, 'Captn Dave'); }
       // Neue Nachbarn: am Anfang gemütlich. Je mehr versorgt sind und je mehr blüht,
       // desto mehr spricht es sich im Grätzl herum, und desto schneller kommen Leute.
       S.spawnIn -= dt;
@@ -1873,7 +1873,7 @@
         const gap = Math.max(4.2, 12.5 - buzz);
         S.spawnIn = (gap + rand(-1, 1)) * (S.calmUntil > S.elapsed ? 2 : 1);
         if (gap < 10.5 && !S.buzz1) { S.buzz1 = true; toast('Es spricht sich herum im Grätzl!', 'Dein gutes Essen lockt immer mehr Leute an.'); say(60, 340, 'Captain, des spricht si herum! Es kommen immer mehr!', 3600, 'Rolf'); }
-        if (gap < 7 && !S.buzz2) { S.buzz2 = true; toast('Jetzt is richtig was los!', 'Das halbe Grätzl steht schon an.'); say(342, 330, 'Volle Kraft voraus, Crew!', 3200, 'Captain Dave'); }
+        if (gap < 7 && !S.buzz2) { S.buzz2 = true; toast('Jetzt is richtig was los!', 'Das halbe Grätzl steht schon an.'); say(342, 330, 'Volle Kraft voraus, Crew!', 3200, 'Captn Dave'); }
       }
       // Rettungstour mit Jakob
       if (S.refilling > 0) { S.refilling -= dt; jakobTick(); }
@@ -2019,7 +2019,7 @@
     setTimeout(() => { $('jakob').classList.remove('rolling'); }, 3700 * T);
     setTimeout(() => { say(60, 340, 'Ahoi! I bin da Rolf, da Smutje auf dem Radschiff. I schnippel heut für euch!', 3200, 'Rolf'); }, 6200 * T);
     setTimeout(() => { $('flame').setAttribute('opacity', '1'); }, 4400 * T);
-    setTimeout(() => { $('steam').setAttribute('opacity', '1'); say(342, 330, pick(CAPTAIN_LINES), 3200, 'Captain Dave'); }, 5000 * T);
+    setTimeout(() => { $('steam').setAttribute('opacity', '1'); say(342, 330, pick(CAPTAIN_LINES), 3200, 'Captn Dave'); }, 5000 * T);
     setTimeout(() => {
       S.phase = 'play';
       S.spawnIn = 2.5;
